@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/joho/godotenv"
 )
@@ -28,7 +29,14 @@ func New() *Config {
 			Driver: getEnv("DB_DRIVER", "postgres"),
 			DSN:    buildDSN(),
 		},
-		MQTT: MQTTConfig{},
+		MQTT: MQTTConfig{
+			Host:     getEnv("MQTT_HOST", "localhost"),
+			Port:     getEnv("MQTT_PORT", "1883"),
+			ClientID: getEnv("MQTT_CLIENT_ID", ""),
+			Username: getEnv("MQTT_USER", "safe-homie"),
+			Password: getEnv("MQTT_PASSWORD", "safe-homie"),
+			Topics:   strings.Split(getEnv("MQTT_TOPICS", ""), ","),
+		},
 	}
 }
 

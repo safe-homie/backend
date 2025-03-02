@@ -24,6 +24,6 @@ func NewServer(infra infrastructure.AppContext) *Server {
 }
 
 func (s *Server) Start() error {
-	s.infra.Logger().Info("server started")
+	s.infra.Logger().Info("api server started")
 	return s.router.Start(s.infra.Config().AppAddress())
 }

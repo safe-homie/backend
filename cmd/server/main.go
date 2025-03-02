@@ -1,12 +1,16 @@
 package main
 
 import (
+	"sync"
+
 	"github.com/safe-homie/backend/infrastructure"
 	"github.com/safe-homie/backend/internal/config"
 	"github.com/safe-homie/backend/internal/store"
 	"github.com/safe-homie/backend/internal/store/db"
+	"github.com/safe-homie/backend/internal/transport/mqtt"
 	"github.com/safe-homie/backend/internal/transport/rest"
 	"github.com/safe-homie/backend/pkg/logger"
+	mqtt_cliet "github.com/safe-homie/backend/pkg/mqtt"
 	"github.com/safe-homie/backend/pkg/validator"
 )
 
@@ -25,8 +29,23 @@ func main() {
 	}
 	validator := validator.New()
 	infra := infrastructure.New(cfg, logger, store, validator)
-	server := rest.NewServer(infra)
-	if err := server.Start(); err != nil {
-		logger.Error(err.Error())
-	}
+	client := mqtt_cliet.New(cfg)
+
+	restServer := rest.NewServer(infra)
+	mqttServer := mqtt.NewServer(infra, client)
+
+	var wg sync.WaitGroup
+	wg.Add(1)
+	go func() {
+		if err := restServer.Start(); err != nil {
+			logger.Error(err.Error())
+		}
+	}()
+	wg.Add(1)
+	go func() {
+		if err := mqttServer.Start(); err != nil {
+			logger.Error(err.Error())
+		}
+	}()
+	wg.Wait()
 }
