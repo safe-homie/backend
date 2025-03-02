@@ -28,11 +28,12 @@ func main() {
 		logger.Info("migrate complete")
 	}
 	validator := validator.New()
-	infra := infrastructure.New(cfg, logger, store, validator)
 	client := mqtt_cliet.New(cfg)
+	context := infrastructure.NewAppContext(cfg, logger, validator)
+	infra := infrastructure.NewAppInfra(store, client)
 
-	restServer := rest.NewServer(infra)
-	mqttServer := mqtt.NewServer(infra, client)
+	restServer := rest.NewServer(context, infra)
+	mqttServer := mqtt.NewServer(context, infra)
 
 	var wg sync.WaitGroup
 	wg.Add(1)

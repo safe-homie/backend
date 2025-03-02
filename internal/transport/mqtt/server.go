@@ -9,25 +9,26 @@ import (
 )
 
 type Server struct {
-	infra  infrastructure.AppContext
-	client _mqtt.MQTTClient
+	context infrastructure.AppContext
+	client  _mqtt.MQTTClient
 }
 
-func NewServer(infra infrastructure.AppContext, client _mqtt.MQTTClient) *Server {
+func NewServer(context infrastructure.AppContext, infra infrastructure.AppInfra) *Server {
+	// TODO: Server would contains service and passing infra as dependencies
 	return &Server{
-		infra:  infra,
-		client: client,
+		context: context,
+		client:  infra.MQTT(),
 	}
 }
 
 func (s *Server) Start() error {
-	s.infra.Logger().Info("mqtt server started")
+	s.context.Logger().Info("mqtt server started")
 	if err := s.client.Connect(); err != nil {
-		s.infra.Logger().Error(fmt.Sprintf("failed to connect to mqtt broker: %s", err.Error()))
+		s.context.Logger().Error(fmt.Sprintf("failed to connect to mqtt broker: %s", err.Error()))
 		return err
 	}
 	// TODO: Refactor to handle multple topics
-	s.infra.Logger().Info("subscribe to sensors/temp")
+	s.context.Logger().Info("subscribe to sensors/temp")
 	if err := s.client.Subscribe("sensors/temp", s.handleTemperature); err != nil {
 		return err
 	}
@@ -35,5 +36,5 @@ func (s *Server) Start() error {
 }
 
 func (s *Server) handleTemperature(client mqtt.Client, msg mqtt.Message) {
-	s.infra.Logger().Info(fmt.Sprintf("received temperature data: %s\n", msg.Payload()))
+	s.context.Logger().Info(fmt.Sprintf("received temperature data: %s", msg.Payload()))
 }

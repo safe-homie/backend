@@ -7,16 +7,16 @@ import (
 )
 
 type Server struct {
-	api    *v1.APIV1
-	router *echo.Echo
-	infra  infrastructure.AppContext
+	api     *v1.APIV1
+	router  *echo.Echo
+	context infrastructure.AppContext
 }
 
-func NewServer(infra infrastructure.AppContext) *Server {
+func NewServer(context infrastructure.AppContext, infra infrastructure.AppInfra) *Server {
 	server := &Server{
-		router: echo.New(),
-		api:    v1.New(infra),
-		infra:  infra,
+		router:  echo.New(),
+		api:     v1.New(context, infra),
+		context: context,
 	}
 	server.setupMiddlewares()
 	server.registerRoutes()
@@ -24,6 +24,6 @@ func NewServer(infra infrastructure.AppContext) *Server {
 }
 
 func (s *Server) Start() error {
-	s.infra.Logger().Info("api server started")
-	return s.router.Start(s.infra.Config().AppAddress())
+	s.context.Logger().Info("api server started")
+	return s.router.Start(s.context.Config().AppAddress())
 }

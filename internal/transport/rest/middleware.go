@@ -7,7 +7,7 @@ import (
 func (s *Server) setupMiddlewares() {
 	s.router.Use(middleware.CORS())
 
-	logCfg := s.infra.Config().GetEchoLogConfig()
+	logCfg := s.context.Config().GetEchoLogConfig()
 	s.router.Use(middleware.LoggerWithConfig(logCfg))
 }
 

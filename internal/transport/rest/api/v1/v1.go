@@ -9,12 +9,13 @@ import (
 )
 
 type APIV1 struct {
-	infra       infrastructure.AppContext
+	context     infrastructure.AppContext
 	demoService *service.Demo
 }
 
-func New(infra infrastructure.AppContext) *APIV1 {
-	return &APIV1{infra: infra, demoService: new(service.Demo)}
+func New(context infrastructure.AppContext, infra infrastructure.AppInfra) *APIV1 {
+	// TODO: APIV1 would contains services and passing infra as dependency
+	return &APIV1{context: context, demoService: new(service.Demo)}
 }
 
 func (a *APIV1) RegisterHandlers(e *echo.Echo) {
