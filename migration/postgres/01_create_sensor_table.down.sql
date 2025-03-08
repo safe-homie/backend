@@ -1,0 +1,3 @@
+DELETE TABLE IF EXISTS sensors;
+
+DELETE TABLE IF EXISTS sensor_data;

@@ -6,6 +6,12 @@ type store struct {
 
 type Store interface {
 	Migrate() error
+	Close()
+
+	CreateSensor(create *Sensor) (*Sensor, error)
+	UpdateSensor(update *UpdateSensor) (*Sensor, error)
+	InsertSensorData(insert *SensorData) (*SensorData, error)
+	GetLatestSensorData(find *FindSensorData) (*SensorData, error)
 }
 
 func New(driver Driver) *store {
@@ -14,4 +20,8 @@ func New(driver Driver) *store {
 
 func (s *store) Migrate() error {
 	return s.driver.Migrate()
+}
+
+func (s *store) Close() {
+	s.driver.Close()
 }
