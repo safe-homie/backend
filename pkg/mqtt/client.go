@@ -50,6 +50,6 @@ func (c *mqttClient) Subscribe(topic string, handler mqtt.MessageHandler) error 
 	return nil
 }
 
-func (c *mqttClient) Close() {
+func (c *mqttClient) Disconnect() {
 	c.client.Disconnect(250)
 }
