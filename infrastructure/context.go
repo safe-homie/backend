@@ -18,7 +18,7 @@ type appContext struct {
 	validator validator.Validator
 }
 
-func NewAppContext(cfg *config.Config, lg logger.Logger, vldt validator.Validator) *appContext {
+func NewAppContext(cfg *config.Config, lg logger.Logger, vldt validator.Validator) AppContext {
 	return &appContext{
 		config:    cfg,
 		logger:    lg,

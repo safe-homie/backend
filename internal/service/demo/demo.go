@@ -1,4 +1,4 @@
-package service
+package demo
 
 type Demo struct {
 }

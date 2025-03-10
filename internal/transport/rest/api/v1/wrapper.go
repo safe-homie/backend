@@ -8,9 +8,23 @@ import (
 )
 
 type Response struct {
-	Data  interface{}
+	Data  any
 	Code  int
-	Error interface{}
+	Error any
+}
+
+func NewErrorResponse(code int, err any) *Response {
+	return &Response{
+		Code:  code,
+		Error: err,
+	}
+}
+
+func NewDataResponse(code int, data any) *Response {
+	return &Response{
+		Code: code,
+		Data: data,
+	}
 }
 
 func Wrap(fn func(c echo.Context) *Response) echo.HandlerFunc {

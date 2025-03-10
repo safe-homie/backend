@@ -11,11 +11,12 @@ type cValidator struct {
 }
 
 func New() Validator {
-	return &cValidator{
-		validator: validator.New(validator.WithRequiredStructEnabled()),
-	}
+	v := validator.New(validator.WithRequiredStructEnabled())
+	v.RegisterValidation("sensor_type", ValidateSensorType)
+
+	return &cValidator{validator: v}
 }
 
-func (cv *cValidator) Validate(i interface{}) error {
+func (cv *cValidator) Validate(i any) error {
 	return cv.validator.Struct(i)
 }

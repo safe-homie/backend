@@ -12,7 +12,7 @@ type mqttClient struct {
 	config config.MQTTConfig
 }
 
-func New(cfg *config.Config) *mqttClient {
+func New(cfg *config.Config) MQTTClient {
 	opts := mqtt.NewClientOptions()
 	opts.AddBroker(cfg.MQTT.BrokerAddress())
 	// opts.SetClientID(cfg.MQTT.ClientID)
