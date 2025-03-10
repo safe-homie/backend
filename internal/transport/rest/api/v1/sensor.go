@@ -5,7 +5,7 @@ import (
 	"strconv"
 
 	"github.com/labstack/echo/v4"
-	"github.com/safe-homie/backend/internal/transport/rest/dto"
+	"github.com/safe-homie/backend/internal/domain"
 )
 
 func (a *APIV1) GetSensor(ctx echo.Context) *Response {
@@ -21,7 +21,7 @@ func (a *APIV1) GetSensor(ctx echo.Context) *Response {
 	if err != nil {
 		return NewErrorResponse(http.StatusInternalServerError, "failed to get sensor: "+err.Error())
 	}
-	return NewDataResponse(http.StatusOK, dto.ToSensorDTO(sensor))
+	return NewDataResponse(http.StatusOK, domain.ToSensorDTO(sensor))
 }
 
 func (a *APIV1) ListSensors(ctx echo.Context) *Response {
@@ -30,11 +30,11 @@ func (a *APIV1) ListSensors(ctx echo.Context) *Response {
 	if err != nil {
 		return NewErrorResponse(http.StatusInternalServerError, "failed to get sensor list: "+err.Error())
 	}
-	return NewDataResponse(http.StatusOK, dto.ToSensorsDTO(sensors))
+	return NewDataResponse(http.StatusOK, domain.ToSensorsDTO(sensors))
 }
 
 func (a *APIV1) CreateSensor(ctx echo.Context) *Response {
-	var req dto.CreateSensorRequest
+	var req domain.CreateSensorRequest
 	if err := ctx.Bind(&req); err != nil {
 		return ErrorInvalidRequestBody
 	}
@@ -45,7 +45,7 @@ func (a *APIV1) CreateSensor(ctx echo.Context) *Response {
 	if err != nil {
 		return NewErrorResponse(http.StatusInternalServerError, "failed to create sensor: "+err.Error())
 	}
-	return NewDataResponse(http.StatusCreated, dto.ToSensorDTO(sensor))
+	return NewDataResponse(http.StatusCreated, domain.ToSensorDTO(sensor))
 }
 
 func (a *APIV1) GetLatestSensorData(ctx echo.Context) *Response {
@@ -61,7 +61,7 @@ func (a *APIV1) GetLatestSensorData(ctx echo.Context) *Response {
 	if err != nil {
 		return NewErrorResponse(http.StatusInternalServerError, "failed to get latest sensor data: "+err.Error())
 	}
-	return NewDataResponse(http.StatusOK, dto.ToSensorDataDTO(data))
+	return NewDataResponse(http.StatusOK, domain.ToSensorDataDTO(data))
 }
 
 func (a *APIV1) ListLatestSensorDataByLocation(ctx echo.Context) *Response {
@@ -70,5 +70,5 @@ func (a *APIV1) ListLatestSensorDataByLocation(ctx echo.Context) *Response {
 	if err != nil {
 		return NewErrorResponse(http.StatusInternalServerError, "failed to get latest sensor data by location: "+err.Error())
 	}
-	return NewDataResponse(http.StatusOK, dto.ToSensorDataListDTO(data))
+	return NewDataResponse(http.StatusOK, domain.ToSensorDataListDTO(data))
 }

@@ -3,7 +3,6 @@ package sensor
 import (
 	"github.com/safe-homie/backend/internal/domain"
 	"github.com/safe-homie/backend/internal/store"
-	"github.com/safe-homie/backend/internal/transport/rest/dto"
 )
 
 // TODO: Implement Sensor service
@@ -11,7 +10,7 @@ import (
 type SensorService interface {
 	GetSensor(id int32) (*store.Sensor, error)
 	ListSensors(location string) ([]*store.Sensor, error)
-	CreateSensor(req *dto.CreateSensorRequest) (*store.Sensor, error)
+	CreateSensor(req *domain.CreateSensorRequest) (*store.Sensor, error)
 	GetLatestSensorData(id int32) (*store.SensorData, error)
 	ListLatestSensorDataByLocation(location string) ([]*store.SensorDataWithProfile, error)
 }
@@ -45,7 +44,7 @@ func (s *sensorService) ListSensors(location string) ([]*store.Sensor, error) {
 	return sensors, nil
 }
 
-func (s *sensorService) CreateSensor(req *dto.CreateSensorRequest) (*store.Sensor, error) {
+func (s *sensorService) CreateSensor(req *domain.CreateSensorRequest) (*store.Sensor, error) {
 	create := store.Sensor{
 		Type:     req.Type,
 		Location: req.Location,

@@ -7,6 +7,6 @@ import (
 )
 
 func (m *mQTTHandler) HandleSensorMessage(client mqtt.Client, msg mqtt.Message) {
+	// TODO: Need to parse payload, call service to insert data
 	fmt.Printf("received temperature data: %s", msg.Payload())
-	fmt.Printf("received temperature data: %s", msg.Topic())
 }
