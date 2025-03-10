@@ -12,10 +12,10 @@ type Server struct {
 	context infrastructure.AppContext
 }
 
-func NewServer(context infrastructure.AppContext, infra infrastructure.AppInfra) *Server {
+func NewServer(context infrastructure.AppContext, infra infrastructure.AppInfra, srv infrastructure.AppService) *Server {
 	server := &Server{
 		router:  echo.New(),
-		api:     v1.New(context, infra),
+		api:     v1.New(context, infra, srv),
 		context: context,
 	}
 	server.setupMiddlewares()

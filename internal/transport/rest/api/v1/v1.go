@@ -15,11 +15,11 @@ type APIV1 struct {
 	sensorService sensor.SensorService
 }
 
-func New(context infrastructure.AppContext, infra infrastructure.AppInfra) *APIV1 {
+func New(context infrastructure.AppContext, infra infrastructure.AppInfra, srv infrastructure.AppService) *APIV1 {
 	return &APIV1{
 		context:       context,
 		demoService:   new(demo.Demo),
-		sensorService: sensor.NewService(infra.Store()),
+		sensorService: srv.SensorService(),
 	}
 }
 
