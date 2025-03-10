@@ -35,9 +35,8 @@ func (s *Server) Start() error {
 }
 
 func (s *Server) registerHandlers() (err error) {
-	{
-		err = s.client.Subscribe("sensors/+", s.handler.HandleSensorMessage)
-	}
+	s.context.Logger().Info("subscribe sensors topic")
+	err = s.client.Subscribe("sensors/+", s.handler.HandleSensorMessage)
 	if err != nil {
 		return
 	}
