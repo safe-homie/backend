@@ -107,6 +107,41 @@ func (p *_postgres) ListSensors(find *store.FindSensor) ([]*store.Sensor, error)
 	return list, nil
 }
 
+func (p *_postgres) GetSensorByID(find *store.FindSensor) (*store.Sensor, error) {
+	where, args := []string{}, []any{}
+	if v := find.ID; v != nil {
+		where, args = append(where, "id = $1"), append(args, *v)
+	}
+	stmt := `SELECT 
+					id,
+					type,
+					location,
+					unit,
+					name,
+					threshold_warning,
+					threshold_danger
+			 FROM sensors`
+	if len(where) > 0 {
+		stmt += " WHERE " + strings.Join(where, " AND ")
+	}
+	if v := find.Limit; v != nil {
+		stmt += fmt.Sprintf(" LIMIT %d", *v)
+	}
+	var sensor store.Sensor
+	if err := p.db.QueryRow(context.Background(), stmt, args...).Scan(
+		&sensor.ID,
+		&sensor.Type,
+		&sensor.Location,
+		&sensor.Unit,
+		&sensor.Name,
+		&sensor.ThresholdWarning,
+		&sensor.ThresholdDanger,
+	); err != nil {
+		return nil, err
+	}
+	return &sensor, nil
+}
+
 func (p *_postgres) InsertSensorData(insert *store.SensorData) (*store.SensorData, error) {
 	fields := []string{"sensor_id", "time", "value"}
 	args := []any{insert.SensorID, insert.Time, insert.Value}

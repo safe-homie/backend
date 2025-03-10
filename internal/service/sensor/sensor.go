@@ -34,6 +34,9 @@ func (s *sensorService) GetSensor(id int32) (*store.Sensor, error) {
 }
 
 func (s *sensorService) ListSensors(location string) ([]*store.Sensor, error) {
+	if location == "" {
+		location = domain.DefaultSensorsLocation
+	}
 	find := store.FindSensor{Location: &location}
 	sensors, err := s.store.ListSensors(&find)
 	if err != nil {

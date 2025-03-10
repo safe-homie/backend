@@ -66,14 +66,7 @@ func (s *store) ListSensors(find *FindSensor) ([]*Sensor, error) {
 }
 
 func (s store) GetSensor(find *FindSensor) (*Sensor, error) {
-	list, err := s.driver.ListSensors(find)
-	if err != nil {
-		return nil, err
-	}
-	if len(list) == 0 {
-		return nil, nil
-	}
-	return list[0], nil
+	return s.driver.GetSensorByID(find)
 }
 
 func (s *store) InsertSensorData(insert *SensorData) (*SensorData, error) {

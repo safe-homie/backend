@@ -10,6 +10,7 @@ type Driver interface {
 	Migrate() error
 
 	ListSensors(find *FindSensor) ([]*Sensor, error)
+	GetSensorByID(find *FindSensor) (*Sensor, error)
 	CreateSensor(create *Sensor) (*Sensor, error)
 	UpdateSensor(update *UpdateSensor) (*Sensor, error)
 	InsertSensorData(insert *SensorData) (*SensorData, error)

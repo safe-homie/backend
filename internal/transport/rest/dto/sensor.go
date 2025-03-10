@@ -31,7 +31,7 @@ type GetSensorDataResponse struct {
 }
 
 type GetSensorDataWithProfileResponse struct {
-	SensorID int32     `json:"sensor_id"`
+	SensorID int32     `json:"id"`
 	Type     string    `json:"type"`
 	Name     string    `json:"name"`
 	Location string    `json:"location"`
@@ -46,6 +46,7 @@ func ToSensorDTO(s *store.Sensor) *GetSensorResponse {
 		Type:             s.Type,
 		Location:         s.Location,
 		Unit:             s.Unit,
+		Name:             s.Name,
 		ThresholdWarning: s.ThresholdWarning,
 		ThresholdDanger:  s.ThresholdDanger,
 	}

@@ -33,7 +33,6 @@ func (a *APIV1) RegisterHandlers(e *echo.Echo) {
 		sensor.GET("", Wrap(a.ListSensors))
 		sensor.POST("", Wrap(a.CreateSensor))
 		sensor.GET("/data/latest", Wrap(a.ListLatestSensorDataByLocation))
-		sensor.GET("/:id/data/latest", Wrap(a.GetLatestSensorData))
 	}
 }
 

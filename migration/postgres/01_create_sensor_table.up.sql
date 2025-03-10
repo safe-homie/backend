@@ -1,9 +1,9 @@
 CREATE TABLE IF NOT EXISTS sensors(
     id SERIAL PRIMARY KEY,
     type VARCHAR(50),
-    name VARCHAR(50)
-    location VARCHAR(100)
-    unit VARCHAR(20)
+    name VARCHAR(50),
+    location VARCHAR(100),
+    unit VARCHAR(20),
     threshold_warning DOUBLE PRECISION,
     threshold_danger DOUBLE PRECISION
 );
