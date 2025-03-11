@@ -1,9 +1,19 @@
 package store
 
-import "database/sql"
+import (
+	"github.com/jackc/pgx/v5/pgxpool"
+)
 
 type Driver interface {
-	Close() error
-	GetDB() *sql.DB
+	Close()
+	GetDB() *pgxpool.Pool
 	Migrate() error
+
+	ListSensors(find *FindSensor) ([]*Sensor, error)
+	GetSensorByID(find *FindSensor) (*Sensor, error)
+	CreateSensor(create *Sensor) (*Sensor, error)
+	UpdateSensor(update *UpdateSensor) (*Sensor, error)
+	InsertSensorData(insert *SensorData) (*SensorData, error)
+	GetLatestSensorData(find *FindSensorData) (*SensorData, error)
+	ListLatestSensorDataByLocation(find *FindSensorData) ([]*SensorDataWithProfile, error)
 }

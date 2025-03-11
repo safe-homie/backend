@@ -1,0 +1,18 @@
+CREATE TABLE IF NOT EXISTS sensors(
+    id SERIAL PRIMARY KEY,
+    type VARCHAR(50),
+    name VARCHAR(50),
+    location VARCHAR(100),
+    unit VARCHAR(20),
+    threshold_warning DOUBLE PRECISION,
+    threshold_danger DOUBLE PRECISION
+);
+
+CREATE TABLE IF NOT EXISTS sensor_data (
+    sensor_id INTEGER,
+    time TIMESTAMP(0) NOT NULL DEFAULT NOW(),
+    value DOUBLE PRECISION,
+    FOREIGN KEY (sensor_id) REFERENCES sensors (id)
+);
+
+SELECT create_hypertable('sensor_data', 'time');

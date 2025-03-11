@@ -18,7 +18,7 @@ type Logger interface {
 	Debug(msg string)
 }
 
-func New() *logger {
+func New() Logger {
 	output := zerolog.ConsoleWriter{Out: os.Stdout}
 	output.FormatLevel = func(i interface{}) string {
 		return strings.ToUpper(fmt.Sprintf("| %-6s|", i))

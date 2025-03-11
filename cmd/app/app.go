@@ -8,7 +8,7 @@ import (
 )
 
 func Run() error {
-	ctx, infra, err := InitApp()
+	ctx, infra, srv, err := InitApp()
 	if err != nil {
 		return err
 	}
@@ -16,7 +16,7 @@ func Run() error {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		restServer := rest.NewServer(ctx, infra)
+		restServer := rest.NewServer(ctx, infra, srv)
 		if err := restServer.Start(); err != nil {
 			ctx.Logger().Error("rest server failed: " + err.Error())
 		}
@@ -24,7 +24,7 @@ func Run() error {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		mqttServer := mqtt.NewServer(ctx, infra)
+		mqttServer := mqtt.NewServer(ctx, infra, srv)
 		if err := mqttServer.Start(); err != nil {
 			ctx.Logger().Error("mqtt server failed: " + err.Error())
 		}

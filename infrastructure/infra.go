@@ -15,7 +15,7 @@ type appInfra struct {
 	mqtt  mqtt.MQTTClient
 }
 
-func NewAppInfra(st store.Store, mc mqtt.MQTTClient) *appInfra {
+func NewAppInfra(st store.Store, mc mqtt.MQTTClient) AppInfra {
 	return &appInfra{
 		store: st,
 		mqtt:  mc,
