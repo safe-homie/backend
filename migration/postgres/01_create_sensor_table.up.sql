@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS sensors(
 
 CREATE TABLE IF NOT EXISTS sensor_data (
     sensor_id INTEGER,
-    time TIMESTAMP NOT NULL DEFAULT NOW(),
+    time TIMESTAMP(0) NOT NULL DEFAULT NOW(),
     value DOUBLE PRECISION,
     FOREIGN KEY (sensor_id) REFERENCES sensors (id)
 );

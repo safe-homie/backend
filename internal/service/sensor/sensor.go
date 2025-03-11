@@ -3,6 +3,7 @@ package sensor
 import (
 	"github.com/safe-homie/backend/internal/domain"
 	"github.com/safe-homie/backend/internal/store"
+	"github.com/safe-homie/backend/internal/util"
 )
 
 // TODO: Implement Sensor service
@@ -11,7 +12,8 @@ type SensorService interface {
 	GetSensor(id int32) (*store.Sensor, error)
 	ListSensors(location string) ([]*store.Sensor, error)
 	CreateSensor(req *domain.CreateSensorRequest) (*store.Sensor, error)
-	GetLatestSensorData(id int32) (*store.SensorData, error)
+	GetLatestSensorData(id int32) (*store.SensorData, error) // Not implemented
+	InsertSensorData(data *domain.SensorDataMessage) (*store.SensorData, error)
 	ListLatestSensorDataByLocation(location string) ([]*store.SensorDataWithProfile, error)
 }
 
@@ -33,9 +35,7 @@ func (s *sensorService) GetSensor(id int32) (*store.Sensor, error) {
 }
 
 func (s *sensorService) ListSensors(location string) ([]*store.Sensor, error) {
-	if location == "" {
-		location = domain.DefaultSensorsLocation
-	}
+	location = util.GetValueOrDefault(location, string(domain.DefaultSensorsLocation))
 	find := store.FindSensor{Location: &location}
 	sensors, err := s.store.ListSensors(&find)
 	if err != nil {
@@ -51,8 +51,8 @@ func (s *sensorService) CreateSensor(req *domain.CreateSensorRequest) (*store.Se
 		Name:     req.Name,
 	}
 	create.Unit = domain.GetSensorUnit(req.Type)
-	create.ThresholdWarning = getOrDefaultThresholdWarning(req.ThresholdWarning)
-	create.ThresholdDanger = getOrDefaultThresholdDanger(req.ThresholdDanger)
+	create.ThresholdWarning = util.GetPointerValueOrDefault(req.ThresholdWarning, domain.DefaultThresholdWarning)
+	create.ThresholdDanger = util.GetPointerValueOrDefault(req.ThresholdDanger, domain.DefaultThresholdDanger)
 	createDB, err := s.store.CreateSensor(&create)
 	if err != nil {
 		return nil, err
@@ -61,9 +61,7 @@ func (s *sensorService) CreateSensor(req *domain.CreateSensorRequest) (*store.Se
 }
 
 func (s *sensorService) ListLatestSensorDataByLocation(location string) ([]*store.SensorDataWithProfile, error) {
-	if location == "" {
-		location = domain.DefaultSensorsLocation
-	}
+	location = util.GetValueOrDefault(location, string(domain.DefaultSensorsLocation))
 	data, err := s.store.ListLatestSensorDataByLocation(&store.FindSensorData{Location: location})
 	if err != nil {
 		return nil, err
@@ -71,21 +69,20 @@ func (s *sensorService) ListLatestSensorDataByLocation(location string) ([]*stor
 	return data, nil
 }
 
+func (s *sensorService) InsertSensorData(data *domain.SensorDataMessage) (*store.SensorData, error) {
+	insert := store.SensorData{
+		SensorID: data.ID,
+		Value:    data.Value,
+		Time:     data.Time,
+	}
+	insertDB, err := s.store.InsertSensorData(&insert)
+	if err != nil {
+		return nil, err
+	}
+	return insertDB, nil
+}
+
 // This method is not necessary at this time
 func (s *sensorService) GetLatestSensorData(id int32) (*store.SensorData, error) {
 	return &store.SensorData{}, nil
-}
-
-func getOrDefaultThresholdWarning(value *float64) float64 {
-	if value != nil {
-		return *value
-	}
-	return domain.DefaultThresholdWarning
-}
-
-func getOrDefaultThresholdDanger(value *float64) float64 {
-	if value != nil {
-		return *value
-	}
-	return domain.DefaultThresholdDanger
 }

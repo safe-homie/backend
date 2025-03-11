@@ -147,7 +147,7 @@ func (p *_postgres) InsertSensorData(insert *store.SensorData) (*store.SensorDat
 	args := []any{insert.SensorID, insert.Time, insert.Value}
 	placeholder := []string{"$1", "$2", "$3"}
 	stmt := "INSERT INTO sensor_data (" + strings.Join(fields, ", ") + ") VALUES (" + strings.Join(placeholder, ", ") + `)`
-	if err := p.db.QueryRow(context.Background(), stmt, args...).Scan(); err != nil {
+	if _, err := p.db.Exec(context.Background(), stmt, args...); err != nil {
 		return nil, err
 	}
 	return insert, nil
