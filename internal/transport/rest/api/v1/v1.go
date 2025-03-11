@@ -4,9 +4,11 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
+	_ "github.com/safe-homie/backend/docs"
 	"github.com/safe-homie/backend/infrastructure"
 	"github.com/safe-homie/backend/internal/service/demo"
 	"github.com/safe-homie/backend/internal/service/sensor"
+	echoSwagger "github.com/swaggo/echo-swagger"
 )
 
 type APIV1 struct {
@@ -24,6 +26,11 @@ func New(context infrastructure.AppContext, infra infrastructure.AppInfra, srv i
 }
 
 func (a *APIV1) RegisterHandlers(e *echo.Echo) {
+	e.GET("/docs", func(c echo.Context) error {
+		return c.Redirect(http.StatusPermanentRedirect, "/docs/index.html")
+	})
+	e.GET("/docs/*", echoSwagger.WrapHandler)
+
 	v1 := e.Group("/api/v1")
 	v1.GET("/demo", Wrap(a.Demo))
 
