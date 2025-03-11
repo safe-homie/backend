@@ -1,4 +1,4 @@
-.PHONY: db timescaledb dev clean
+.PHONY: db timescaledb dev clean docs
 
 db:	
 	@docker run --name postgres -d -p 5432:5432 -e POSTGRES_PASSWORD=password postgres:17.2-alpine3.21
@@ -9,6 +9,9 @@ timescaledb:
 clean:
 	@docker stop timescaledb && \
 	docker rm timescaledb -v
+
+docs:
+	@swag init -d cmd,internal/transport/rest,internal/domain
 
 dev: timescaledb
 	@echo "[Dev ready]"

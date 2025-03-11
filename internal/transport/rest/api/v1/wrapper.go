@@ -13,6 +13,18 @@ type Response struct {
 	Error any
 }
 
+type SuccessResponseWrapper struct {
+	Success bool `json:"success" default:"true"`
+	Code    int  `json:"code"`
+	Data    any  `json:"data"`
+}
+
+type ErrorResponseWrapper struct {
+	Success bool `json:"success" default:"false"`
+	Code    int  `json:"code"`
+	Error   any  `json:"error"`
+}
+
 func NewErrorResponse(code int, err any) *Response {
 	return &Response{
 		Code:  code,

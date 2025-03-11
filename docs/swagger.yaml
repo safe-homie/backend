@@ -1,0 +1,241 @@
+basePath: /api/v1
+definitions:
+  domain.CreateSensorRequest:
+    properties:
+      location:
+        type: string
+      name:
+        type: string
+      threshold_danger:
+        minimum: 0
+        type: number
+      threshold_warning:
+        minimum: 0
+        type: number
+      type:
+        type: string
+    required:
+    - location
+    - name
+    - type
+    type: object
+  domain.GetSensorDataWithProfileResponse:
+    properties:
+      id:
+        type: integer
+      location:
+        type: string
+      name:
+        type: string
+      time:
+        type: string
+      type:
+        type: string
+      unit:
+        type: string
+      value:
+        type: number
+    type: object
+  domain.GetSensorResponse:
+    properties:
+      id:
+        type: integer
+      location:
+        type: string
+      name:
+        type: string
+      threshold_danger:
+        type: number
+      threshold_warning:
+        type: number
+      type:
+        type: string
+      unit:
+        type: string
+    type: object
+  v1.ErrorResponseWrapper:
+    properties:
+      code:
+        type: integer
+      error: {}
+      success:
+        default: false
+        type: boolean
+    type: object
+  v1.SuccessResponseWrapper:
+    properties:
+      code:
+        type: integer
+      data: {}
+      success:
+        default: true
+        type: boolean
+    type: object
+externalDocs:
+  description: OpenAPI
+  url: https://swagger.io/resources/open-api/
+info:
+  contact: {}
+  description: This is API documentation for SmartHomie.
+  license:
+    name: MIT
+    url: http://opensource.org/licenses/MIT
+  termsOfService: http://swagger.io/terms/
+  title: SmartHomie API
+  version: "1.0"
+paths:
+  /sensors:
+    get:
+      description: Get sensor profile lists by location
+      parameters:
+      - description: list sensors by location
+        in: query
+        name: location
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/v1.SuccessResponseWrapper'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/domain.GetSensorResponse'
+                  type: array
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            allOf:
+            - $ref: '#/definitions/v1.ErrorResponseWrapper'
+            - properties:
+                error:
+                  type: string
+              type: object
+      summary: Get sensor profiles list
+      tags:
+      - sensors
+    post:
+      consumes:
+      - application/json
+      description: Create a new sensor profile
+      parameters:
+      - description: create sensor request body
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/domain.CreateSensorRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/v1.SuccessResponseWrapper'
+            - properties:
+                data:
+                  $ref: '#/definitions/domain.GetSensorResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            allOf:
+            - $ref: '#/definitions/v1.ErrorResponseWrapper'
+            - properties:
+                error:
+                  type: string
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            allOf:
+            - $ref: '#/definitions/v1.ErrorResponseWrapper'
+            - properties:
+                error:
+                  type: string
+              type: object
+      summary: Create new sensor profile
+      tags:
+      - sensors
+  /sensors/{id}:
+    get:
+      description: Get sensor profile by ID
+      parameters:
+      - description: Sensor ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/v1.SuccessResponseWrapper'
+            - properties:
+                data:
+                  $ref: '#/definitions/domain.GetSensorResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            allOf:
+            - $ref: '#/definitions/v1.ErrorResponseWrapper'
+            - properties:
+                error:
+                  type: string
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            allOf:
+            - $ref: '#/definitions/v1.ErrorResponseWrapper'
+            - properties:
+                error:
+                  type: string
+              type: object
+      summary: Get a sensor profile
+      tags:
+      - sensors
+  /sensors/data/latest:
+    get:
+      description: List sensor profile and latest data by location
+      parameters:
+      - description: list sensors by location
+        in: query
+        name: location
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/v1.SuccessResponseWrapper'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/domain.GetSensorDataWithProfileResponse'
+                  type: array
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            allOf:
+            - $ref: '#/definitions/v1.ErrorResponseWrapper'
+            - properties:
+                error:
+                  type: string
+              type: object
+      summary: List sensor profile and latest data
+      tags:
+      - sensors
+swagger: "2.0"
