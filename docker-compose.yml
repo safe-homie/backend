@@ -14,7 +14,7 @@ services:
             mosquitto-broker:
                 condition: service_started
         networks:
-            - smart-homie-net
+            - safe-homie-net
 
     timescaledb:
         image: timescale/timescaledb:2.18.1-pg17
@@ -32,7 +32,7 @@ services:
         volumes:
             - pg-data:/var/lib/postgresql/data
         networks:
-            - smart-homie-net
+            - safe-homie-net
 
     mosquitto-broker:
         image: eclipse-mosquitto:2.0.21
@@ -41,10 +41,10 @@ services:
         volumes:
             - ./mosquitto.conf:/mosquitto/config/mosquitto.conf
         networks:
-            - smart-homie-net
+            - safe-homie-net
 
 networks:
-    smart-homie-net:
+    safe-homie-net:
 
 volumes:
     pg-data:

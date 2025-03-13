@@ -6,9 +6,9 @@ import (
 	"github.com/safe-homie/backend/cmd/app"
 )
 
-//	@title			SmartHomie API
+//	@title			SafeHomie API
 //	@version		1.0
-//	@description	This is API documentation for SmartHomie.
+//	@description	This is API documentation for SafeHomie.
 //	@termsOfService	http://swagger.io/terms/
 
 //	@license.name	MIT
@@ -16,8 +16,8 @@ import (
 
 //	@BasePath	/api/v1
 
-//	@externalDocs.description	OpenAPI
-//	@externalDocs.url			https://swagger.io/resources/open-api/
+// @externalDocs.description	OpenAPI
+// @externalDocs.url			https://swagger.io/resources/open-api/
 func main() {
 	if err := app.Run(); err != nil {
 		log.Fatal(err)
