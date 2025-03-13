@@ -10,6 +10,9 @@ clean:
 	@docker stop timescaledb && \
 	docker rm timescaledb -v
 
+mqtt: 
+	@docker run --name broker -d -p 1883:1883 eclipse-mosquitto:2.0.21
+
 docs:
 	@swag init -d cmd,internal/transport/rest,internal/domain
 

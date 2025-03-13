@@ -76,12 +76,12 @@ externalDocs:
   url: https://swagger.io/resources/open-api/
 info:
   contact: {}
-  description: This is API documentation for SmartHomie.
+  description: This is API documentation for SafeHomie.
   license:
     name: MIT
     url: http://opensource.org/licenses/MIT
   termsOfService: http://swagger.io/terms/
-  title: SmartHomie API
+  title: SafeHomie API
   version: "1.0"
 paths:
   /sensors:
