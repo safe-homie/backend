@@ -1,6 +1,10 @@
 package sensor
 
 import (
+	"fmt"
+	"strconv"
+
+	"github.com/safe-homie/backend/internal/cache"
 	"github.com/safe-homie/backend/internal/domain"
 	"github.com/safe-homie/backend/internal/store"
 	"github.com/safe-homie/backend/internal/util"
@@ -18,11 +22,14 @@ type SensorService interface {
 }
 
 func NewService(store store.Store) SensorService {
-	return &sensorService{store: store}
+	srv := &sensorService{store: store, cache: cache.NewInMemoryCache()}
+	srv.loadCacheFromDB()
+	return srv
 }
 
 type sensorService struct {
 	store store.Store
+	cache cache.Cache
 }
 
 func (s *sensorService) GetSensor(id int32) (*store.Sensor, error) {
@@ -70,6 +77,10 @@ func (s *sensorService) ListLatestSensorDataByLocation(location string) ([]*stor
 }
 
 func (s *sensorService) InsertSensorData(data *domain.SensorDataMessage) (*store.SensorData, error) {
+	valid := s.validateSensorData(data)
+	if !valid {
+		return nil, fmt.Errorf("sensor type and sensor id mismatch")
+	}
 	insert := store.SensorData{
 		SensorID: data.ID,
 		Value:    data.Value,
@@ -85,4 +96,31 @@ func (s *sensorService) InsertSensorData(data *domain.SensorDataMessage) (*store
 // This method is not necessary at this time
 func (s *sensorService) GetLatestSensorData(id int32) (*store.SensorData, error) {
 	return &store.SensorData{}, nil
+}
+
+func (s *sensorService) loadCacheFromDB() {
+	sensors, err := s.store.ListSensors(&store.FindSensor{})
+	if err != nil {
+		return
+	}
+	for _, sensor := range sensors {
+		s.cache.Set(strconv.Itoa(int(sensor.ID)), sensor.Type, 0)
+	}
+}
+
+func (s *sensorService) getSensorType(sensorID int32) (string, error) {
+	if val, ok := s.cache.Get(strconv.Itoa(int(sensorID))); ok {
+		return val.(string), nil
+	}
+	sensor, err := s.store.GetSensor(&store.FindSensor{ID: &sensorID})
+	if err != nil {
+		return "", err
+	}
+	s.cache.Set(strconv.Itoa(int(sensor.ID)), sensor.Type, 0)
+	return sensor.Type, nil
+}
+
+func (s *sensorService) validateSensorData(data *domain.SensorDataMessage) bool {
+	sensorType, _ := s.getSensorType(data.ID)
+	return sensorType == data.Type
 }
