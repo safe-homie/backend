@@ -20,6 +20,7 @@ func (m *mQTTHandler) HandleSensorMessage(client mqtt.Client, msg mqtt.Message) 
 	sensorType := extractSensorTypeFromTopic(topic)
 	sensorData.Type = sensorType
 	if _, err := m.service.InsertSensorData(&sensorData); err != nil {
+		log.Printf("error inserting sensor message: %v", err)
 		return
 	}
 }
