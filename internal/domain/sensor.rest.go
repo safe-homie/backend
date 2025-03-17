@@ -74,7 +74,7 @@ func ToSensorDataListDTO(in []*store.SensorDataWithProfile) []*GetSensorDataWith
 	for _, item := range in {
 		data := GetSensorDataWithProfileResponse{
 			SensorID: item.SensorID,
-			Type:     item.Location,
+			Type:     item.Type,
 			Name:     item.Name,
 			Unit:     item.Unit,
 			Location: item.Location,

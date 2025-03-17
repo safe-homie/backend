@@ -15,7 +15,9 @@ type mqttClient struct {
 func New(cfg *config.Config) MQTTClient {
 	opts := mqtt.NewClientOptions()
 	opts.AddBroker(cfg.MQTT.BrokerAddress())
-	// opts.SetClientID(cfg.MQTT.ClientID)
+	opts.SetClientID(cfg.MQTT.ClientID)
+	opts.SetUsername(cfg.MQTT.Username)
+	opts.SetPassword(cfg.MQTT.Password)
 	opts.SetAutoReconnect(true)
 	opts.SetConnectRetry(true)
 	opts.SetConnectTimeout(10 * time.Second)
