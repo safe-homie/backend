@@ -15,6 +15,17 @@ type Store interface {
 	InsertSensorData(insert *SensorData) (*SensorData, error)
 	GetLatestSensorData(find *FindSensorData) (*SensorData, error)
 	ListLatestSensorDataByLocation(find *FindSensorData) ([]*SensorDataWithProfile, error)
+
+	GetDevice(find *FindDevice) (*Device, error)
+	ListDevices(find *FindDevice) ([]*Device, error)
+	ListDeviceHistory(find *FindDeviceHistory) ([]*DeviceHistory, error)
+	ListDeviceSchedule(find *FindDeviceSchedule) ([]*DeviceSchedule, error)
+
+	CreateDevice(create *Device) (*Device, error)
+	UpdateDevice(update *UpdateDevice) (*UpdateDevice, error)
+
+	// CreateDeviceSchedule(create *DeviceSchedule) (*DeviceSchedule, error)
+	// InsertDeviceHistory(insert *DeviceHistory) (*DeviceHistory, error)
 }
 
 func New(driver Driver) Store {
