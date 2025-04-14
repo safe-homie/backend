@@ -8,6 +8,7 @@ import (
 	"github.com/safe-homie/backend/internal/domain"
 	"github.com/safe-homie/backend/internal/store"
 	"github.com/safe-homie/backend/internal/util"
+	"github.com/safe-homie/backend/pkg/event"
 )
 
 // TODO: Implement Sensor service
@@ -21,15 +22,20 @@ type SensorService interface {
 	ListLatestSensorDataByLocation(location string) ([]*store.SensorDataWithProfile, error)
 }
 
-func NewService(store store.Store) SensorService {
-	srv := &sensorService{store: store, cache: cache.NewInMemoryCache()}
+func NewService(store store.Store, evm event.EventManager) SensorService {
+	srv := &sensorService{
+		store:        store,
+		cache:        cache.NewInMemoryCache(),
+		eventManager: evm,
+	}
 	srv.loadCacheFromDB()
 	return srv
 }
 
 type sensorService struct {
-	store store.Store
-	cache cache.Cache
+	store        store.Store
+	cache        cache.Cache
+	eventManager event.EventManager
 }
 
 func (s *sensorService) GetSensor(id int32) (*store.Sensor, error) {
@@ -90,6 +96,7 @@ func (s *sensorService) InsertSensorData(data *domain.SensorDataMessage) (*store
 	if err != nil {
 		return nil, err
 	}
+	go s.handleIfExceeded(&insert)
 	return insertDB, nil
 }
 
@@ -123,4 +130,22 @@ func (s *sensorService) getSensorType(sensorID int32) (string, error) {
 func (s *sensorService) validateSensorData(data *domain.SensorDataMessage) bool {
 	sensorType, _ := s.getSensorType(data.ID)
 	return sensorType == data.Type
+}
+
+func (s *sensorService) handleIfExceeded(data *store.SensorData) {
+	sensorDB, _ := s.store.GetSensor(&store.FindSensor{ID: &data.SensorID})
+	if s.isExceeded(sensorDB.ThresholdDanger, data.Value) {
+		ev := domain.SensorThresholdExceedEvent{
+			Notify: domain.Notification{
+				Title: "Cảnh báo vượt ngưỡng",
+				Body: fmt.Sprintf("Cảm biến %s tại %s đo được giá trị %.2f, vượt ngưỡng an toàn",
+					sensorDB.Name, sensorDB.Location, data.Value),
+			},
+		}
+		s.eventManager.EmitEvent(domain.SensorThresholdExceed, ev)
+	}
+}
+
+func (s *sensorService) isExceeded(threshold, value float64) bool {
+	return value >= threshold
 }

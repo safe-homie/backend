@@ -14,6 +14,8 @@ const (
 	UnitUnknown     = "unknown"
 
 	DefaultSensorsLocation = "living room"
+
+	SensorThresholdExceed = "sensor:thresholdexceed"
 )
 
 func IsValidSensorType(sensorType string) bool {
