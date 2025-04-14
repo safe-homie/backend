@@ -7,6 +7,16 @@ import (
 	"github.com/safe-homie/backend/internal/domain"
 )
 
+// @Summary		Save Expo push token
+// @Description	Update Expo push token
+// @Tags			token
+// @Accept			json
+// @Produce		json
+// @Param			request	body		domain.SaveTokenRequest	true	"save token request body"
+// @Success		200		{object}	SuccessResponseWrapper{data=domain.SaveTokenRequest}
+// @Failure		400		{object}	ErrorResponseWrapper{error=string}
+// @Failure		500		{object}	ErrorResponseWrapper{error=string}
+// @Router			/notify/token [post]
 func (a *APIV1) SaveToken(ctx echo.Context) *Response {
 	var req domain.SaveTokenRequest
 	if err := ctx.Bind(&req); err != nil {
