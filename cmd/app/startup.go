@@ -34,9 +34,9 @@ func InitApp() (infrastructure.AppContext, infrastructure.AppInfra, infrastructu
 	} else {
 		context.Logger().Info("migrate completed")
 	}
-	eventManager.RegisterEvent(domain.SensorThresholdExceed, srv.NotifyService().Notify)
-	eventManager.RegisterEvent(domain.SensorThresholdExceed, mqttClient.Publish)
-	// TODO: Need method to control device from DeviceService
-	// eventManager.RegisterEvent("sensor:thresholdexceeded", ...)
+	eventManager.RegisterEvent(domain.SensorThresholdExceed, func(e any) {
+		ev, _ := e.(domain.SensorThresholdExceedEvent)
+		srv.NotifyService().Notify(ev.Token, ev.Notify)
+	})
 	return context, infra, srv, nil
 }

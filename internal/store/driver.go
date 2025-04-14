@@ -18,4 +18,5 @@ type Driver interface {
 	ListLatestSensorDataByLocation(find *FindSensorData) ([]*SensorDataWithProfile, error)
 
 	SaveToken(save *Token) (*Token, error)
+	GetToken(find *FindToken) (*Token, error)
 }

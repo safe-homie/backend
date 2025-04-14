@@ -135,12 +135,14 @@ func (s *sensorService) validateSensorData(data *domain.SensorDataMessage) bool 
 func (s *sensorService) handleIfExceeded(data *store.SensorData) {
 	sensorDB, _ := s.store.GetSensor(&store.FindSensor{ID: &data.SensorID})
 	if s.isExceeded(sensorDB.ThresholdDanger, data.Value) {
+		token, _ := s.store.GetToken(&store.FindToken{DeviceID: domain.DefaultDeviceID})
 		ev := domain.SensorThresholdExceedEvent{
 			Notify: domain.Notification{
 				Title: "Cảnh báo vượt ngưỡng",
 				Body: fmt.Sprintf("Cảm biến %s tại %s đo được giá trị %.2f, vượt ngưỡng an toàn",
 					sensorDB.Name, sensorDB.Location, data.Value),
 			},
+			Token: token.Token,
 		}
 		s.eventManager.EmitEvent(domain.SensorThresholdExceed, ev)
 	}
