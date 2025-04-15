@@ -20,13 +20,10 @@ type Driver interface {
 	GetDeviceByID(find *FindDevice) (*Device, error)
 	ListDevices(find *FindDevice) ([]*Device, error)
 	UpdateDevice(edit *UpdateDevice) (*UpdateDevice, error)
-
 	InsertStatusData(insert *DeviceStatus) error
-
 	GetDeviceStatus(find *FindDevice) (*DeviceStatus, error)
 	UpdateDeviceStatus(status *DeviceStatus) (*DeviceStatus, error)
 	CreateDeviceHistory(create *DeviceHistory) (*DeviceHistory, error)
-
 	ListDeviceHistory(find *FindDeviceHistory) ([]*DeviceHistory, error)
 
 	// GetStatus(deviceID int32) (*DeviceStatus, error)
@@ -37,4 +34,6 @@ type Driver interface {
 	// CreateDeviceSchedule(create *DeviceSchedule) (*DeviceSchedule, error)
 	// UpdateDeviceSchedule(edit *UpdateDeviceSchedule) (*DeviceSchedule, error)
 	// DeleteDeviceSchedule(find *FindDevice) error
+	SaveToken(save *Token) (*Token, error)
+	GetToken(find *FindToken) (*Token, error)
 }

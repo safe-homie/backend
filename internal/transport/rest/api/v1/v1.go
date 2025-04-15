@@ -8,6 +8,7 @@ import (
 	"github.com/safe-homie/backend/infrastructure"
 	"github.com/safe-homie/backend/internal/service/demo"
 	"github.com/safe-homie/backend/internal/service/device"
+	"github.com/safe-homie/backend/internal/service/notify"
 	"github.com/safe-homie/backend/internal/service/sensor"
 	echoSwagger "github.com/swaggo/echo-swagger"
 )
@@ -17,6 +18,7 @@ type APIV1 struct {
 	demoService   *demo.Demo
 	sensorService sensor.SensorService
 	deviceService device.DeviceService
+	notifyService notify.NotifyService
 }
 
 func New(context infrastructure.AppContext, infra infrastructure.AppInfra, srv infrastructure.AppService) *APIV1 {
@@ -25,6 +27,7 @@ func New(context infrastructure.AppContext, infra infrastructure.AppInfra, srv i
 		demoService:   new(demo.Demo),
 		sensorService: srv.SensorService(),
 		deviceService: srv.DeviceService(),
+		notifyService: srv.NotifyService(),
 	}
 }
 
@@ -37,6 +40,9 @@ func (a *APIV1) RegisterHandlers(e *echo.Echo) {
 	v1 := e.Group("/api/v1")
 	v1.GET("/demo", Wrap(a.Demo))
 
+	notify := v1.Group("/notify")
+	notify.POST("/token", Wrap(a.SaveToken))
+
 	sensor := v1.Group("/sensors")
 	{
 		sensor.GET("/:id", Wrap(a.GetSensor))
@@ -44,6 +50,7 @@ func (a *APIV1) RegisterHandlers(e *echo.Echo) {
 		sensor.POST("", Wrap(a.CreateSensor))
 		sensor.GET("/data/latest", Wrap(a.ListLatestSensorDataByLocation))
 	}
+
 	device := v1.Group("/devices")
 	{
 		device.GET("/:id", Wrap(a.GetDevice))

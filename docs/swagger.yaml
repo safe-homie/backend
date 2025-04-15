@@ -88,6 +88,11 @@ definitions:
       unit:
         type: string
     type: object
+  domain.SaveTokenRequest:
+    properties:
+      token:
+        type: string
+    type: object
   domain.TimeRange:
     properties:
       end_time:
@@ -394,6 +399,51 @@ paths:
       summary: Get device history
       tags:
       - devices
+  /notify/token:
+    post:
+      consumes:
+      - application/json
+      description: Update Expo push token
+      parameters:
+      - description: save token request body
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/domain.SaveTokenRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/v1.SuccessResponseWrapper'
+            - properties:
+                data:
+                  $ref: '#/definitions/domain.SaveTokenRequest'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            allOf:
+            - $ref: '#/definitions/v1.ErrorResponseWrapper'
+            - properties:
+                error:
+                  type: string
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            allOf:
+            - $ref: '#/definitions/v1.ErrorResponseWrapper'
+            - properties:
+                error:
+                  type: string
+              type: object
+      summary: Save Expo push token
+      tags:
+      - token
   /sensors:
     get:
       description: Get sensor profile lists by location
