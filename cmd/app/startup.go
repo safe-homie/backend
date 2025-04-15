@@ -34,9 +34,9 @@ func InitApp() (infrastructure.AppContext, infrastructure.AppInfra, infrastructu
 	} else {
 		context.Logger().Info("migrate completed")
 	}
-	eventManager.RegisterEvent(domain.SensorThresholdExceed, func(e any) {
-		ev, _ := e.(domain.SensorThresholdExceedEvent)
+	eventManager.RegisterEvent(domain.SensorThresholdExceed, func(ev domain.SensorThresholdExceedEvent) {
 		srv.NotifyService().Notify(ev.Token, ev.Notify)
 	})
+	context.Logger().Info("register sensor threshold event done")
 	return context, infra, srv, nil
 }

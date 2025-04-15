@@ -141,6 +141,12 @@ func (s *sensorService) handleIfExceeded(data *store.SensorData) {
 				Title: "Cảnh báo vượt ngưỡng",
 				Body: fmt.Sprintf("Cảm biến %s tại %s đo được giá trị %.2f, vượt ngưỡng an toàn",
 					sensorDB.Name, sensorDB.Location, data.Value),
+				Data: map[string]string{
+					"location":  sensorDB.Location,
+					"sensor_id": strconv.Itoa(int(sensorDB.ID)),
+					"time":      data.Time.String(),
+					"type":      sensorDB.Type,
+				},
 			},
 			Token: token.Token,
 		}

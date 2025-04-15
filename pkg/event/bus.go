@@ -17,5 +17,5 @@ func (e *eventManager) RegisterEvent(topic string, callback any) error {
 }
 
 func (e *eventManager) EmitEvent(topic string, args ...any) {
-	e.bus.Publish(topic, args)
+	e.bus.Publish(topic, args...)
 }
