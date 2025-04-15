@@ -139,8 +139,8 @@ func (s *sensorService) handleIfExceeded(data *store.SensorData) {
 		ev := domain.SensorThresholdExceedEvent{
 			Notify: domain.Notification{
 				Title: "Cảnh báo vượt ngưỡng",
-				Body: fmt.Sprintf("Cảm biến %s tại %s đo được giá trị %.2f, vượt ngưỡng an toàn",
-					sensorDB.Name, sensorDB.Location, data.Value),
+				Body: fmt.Sprintf("Cảm biến %s tại %s đo được giá trị %.2f, vượt ngưỡng an toàn %.2f",
+					sensorDB.Name, sensorDB.Location, data.Value, sensorDB.ThresholdDanger),
 				Data: map[string]string{
 					"location":  sensorDB.Location,
 					"sensor_id": strconv.Itoa(int(sensorDB.ID)),
