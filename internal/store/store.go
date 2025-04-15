@@ -18,15 +18,34 @@ type Store interface {
 
 	GetDevice(find *FindDevice) (*Device, error)
 	ListDevices(find *FindDevice) ([]*Device, error)
+	UpdateDevice(edit *UpdateDevice) (*UpdateDevice, error)
+
 	ListDeviceHistory(find *FindDeviceHistory) ([]*DeviceHistory, error)
-	ListDeviceSchedule(find *FindDeviceSchedule) ([]*DeviceSchedule, error)
 
-	CreateDevice(create *Device) (*Device, error)
-	UpdateDevice(update *UpdateDevice) (*UpdateDevice, error)
+	InsertStatusData(insert *DeviceStatus) error
 
-	// CreateDeviceSchedule(create *DeviceSchedule) (*DeviceSchedule, error)
-	// InsertDeviceHistory(insert *DeviceHistory) (*DeviceHistory, error)
+	GetStatus(find *FindDevice) (*DeviceStatus, error)
+	UpdateStatus(status *DeviceStatus) (*DeviceStatus, error)
+	RecordHistory(history *DeviceHistory) (*DeviceHistory, error)
 }
+
+type StatusHistoryOperations interface {
+	// GetDeviceStatus(find *FindDevice) (*DeviceStatus, error)
+	// UpdateDeviceStatus(status *DeviceStatus) (*DeviceStatus, error)
+
+	// CreateDeviceHistory(create *DeviceHistory) (*DeviceHistory, error)
+
+	GetStatus(deviceID int32) (*DeviceStatus, error)
+	// UpdateStatus(status *DeviceStatus) error
+	// RecordHistory(history *DeviceHistory) error
+}
+
+// type ScheduleOperations interface {
+// 	ListDeviceSchedule(find *FindDeviceSchedule) ([]*DeviceSchedule, error)
+// 	CreateDeviceSchedule(create *DeviceSchedule) (*DeviceSchedule, error)
+// 	UpdateDeviceSchedule(edit *UpdateDeviceSchedule) (*DeviceSchedule, error)
+// 	DeleteDeviceSchedule(find *FindDevice) error
+// }
 
 func New(driver Driver) Store {
 	return &store{driver: driver}

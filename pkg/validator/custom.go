@@ -15,6 +15,11 @@ func ValidateDeviceType(fl validator.FieldLevel) bool {
 	return domain.IsValidDeviceType(value)
 }
 
+func ValidateDeviceAction(fl validator.FieldLevel) bool {
+	value := fl.Field().String()
+	return domain.IsValidDeviceAction(value)
+}
+
 func ValidateScheduleRepeat(fl validator.FieldLevel) bool {
 	value := fl.Field().String()
 	return domain.IsValidScheduleRepeat(value)

@@ -48,22 +48,21 @@ func (a *APIV1) RegisterHandlers(e *echo.Echo) {
 	{
 		device.GET("/:id", Wrap(a.GetDevice))
 		device.GET("", Wrap(a.ListDevices))
-		device.GET("/:id/status", Wrap(a.DeviceStatus))     // kiểm tra tính tiện ích
-		device.GET("/:id/history", Wrap(a.DeviceHistories)) // bổ sung chuẩn hóa thời gian
-		device.GET("/:id/schedule", Wrap(a.DeviceSchedules))
-
-		/////////////////////////////////////////////////////////
-		// Command Pattern
 		device.PUT("/:id", Wrap(a.UpdateDevice))
-		device.POST("", Wrap(a.CreateDevice)) // xem lại sửa đổi
-		device.POST("/:id/control", Wrap(a.ControlDevice))
-		device.POST("/:id/schedule", Wrap(a.ScheduleDevice))
-		device.PUT("/:id/schedule/:schedule_id", Wrap(a.UpdateScheduleDevice))
-		device.DELETE("/:id/schedule/:schedule_id", Wrap(a.DeleteScheduleDevice))
 
-		// Update later
-		device.POST("room/auto-mode", Wrap(a.AutoModeSchedule))
-		device.POST("room/apply-preset", Wrap(a.PresetModeSchedule))
+		device.GET("/:id/status", Wrap(a.DeviceStatus))
+		device.POST("/:id/control", Wrap(a.ControlDevice))
+
+		device.GET("/:id/history", Wrap(a.DeviceHistories))
+
+		// // device.GET("/:id/schedule", Wrap(a.DeviceSchedules))
+		// // device.POST("/:id/schedule/insert", Wrap(a.CreaeteScheduleDevice))
+		// // device.PUT("/:id/schedule/:schedule_id", Wrap(a.UpdateDeviceSchedule))
+		// // device.DELETE("/:id/schedule/:schedule_id", Wrap(a.DeleteScheduleDevice))
+
+		// // Update later
+		// device.POST("room/auto-mode", Wrap(a.AutoModeSchedule))
+		// device.POST("room/apply-preset", Wrap(a.PresetModeSchedule))
 
 	}
 }

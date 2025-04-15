@@ -12,21 +12,39 @@ import (
 	"github.com/safe-homie/backend/internal/util"
 )
 
+type DeviceRepository interface {
+	GetStatus(deviceID int32) (*store.DeviceStatus, error)
+	UpdateStatus(status *store.DeviceStatus) error
+	RecordHistory(history *store.DeviceHistory) error
+}
+type DeviceCommand interface {
+	Execute() error
+	GetDeviceID() int32
+	GetCommandType() string
+	GetState() map[string]interface{}
+}
+
 // TODO: Implement Device service
 // Including REST + MQTT
 type DeviceService interface {
 	GetDevice(id int32) (*store.Device, error)
-	ListDevices(location string) ([]*store.Device, error)
-	ListDeviceHistory(id int32, req *domain.GetDeviceHistoryRequest) ([]*store.DeviceHistory, error)
-	ListDeviceSchedule(deviceID int32) ([]*store.DeviceSchedule, error)
+	ListDevices(room string) ([]*store.Device, error)
+	UpdateDevice(id int32, req *domain.UpdateDeviceRequest) (*store.UpdateDevice, error)
 
-	// ControlDevice(id int32, status string) (*store.Device, error)
-	CreateDevice(req *domain.CreateDeviceRequest) (*store.Device, error)
-	UpdateDevice(id int32, req *domain.UpdateDeviceRequest) (*store.UpdateDevice, error) // will change later
+	GetDeviceStatus(deviceID int32) (*store.DeviceStatus, error)
+
+	ListDeviceHistory(id int32, req *domain.GetDeviceHistoryRequest) ([]*store.DeviceHistory, error)
+
+	ExecuteCommand(cmd domain.DeviceCommand) error
+
+	InsertStatusData(data *domain.DeviceMessage) error
+	HandleControlMessage(data *domain.DeviceMessage) error
+
+	// CreateDeviceHistory(id int32) (*store.DeviceHistory, error)
+	// ListDeviceSchedule(deviceID int32) ([]*store.DeviceSchedule, error)
+	// CreateDevice(req *domain.CreateDeviceRequest) (*store.Device, error)
 	// CreateDeviceSchedule(req *domain.CreateScheduleRequest) (*store.DeviceSchedule, error)
 
-	// ApplyPreset()
-	// SetAutoMode()
 }
 
 func NewService(store store.Store) DeviceService {
@@ -59,9 +77,9 @@ func (s *deviceService) GetDevice(id int32) (*store.Device, error) {
 	return deviceDB, nil
 }
 
-func (s *deviceService) ListDevices(location string) ([]*store.Device, error) {
-	location = util.GetValueOrDefault(location, string(domain.DefaultDeviceLocation))
-	find := store.FindDevice{Location: &location}
+func (s *deviceService) ListDevices(room string) ([]*store.Device, error) {
+	room = util.GetValueOrDefault(room, string(domain.DefaultDeviceLocation))
+	find := store.FindDevice{Room: &room}
 	devices, err := s.store.ListDevices(&find)
 	if err != nil {
 		return nil, err
@@ -69,26 +87,12 @@ func (s *deviceService) ListDevices(location string) ([]*store.Device, error) {
 	return devices, nil
 }
 
-func (s *deviceService) CreateDevice(req *domain.CreateDeviceRequest) (*store.Device, error) {
-	create := store.Device{
-		Name:     req.Name,
-		Location: req.Location,
-		Type:     req.Type,
-		Power:    req.Power,
-		Level:    req.Level,
-	}
-	createDB, err := s.store.CreateDevice(&create)
-	if err != nil {
-		return nil, err
-	}
-	return createDB, nil
-}
-
 func (s *deviceService) UpdateDevice(id int32, req *domain.UpdateDeviceRequest) (*store.UpdateDevice, error) {
 	update := store.UpdateDevice{
-		Location: &req.Location,
-		Name:     &req.Name,
-		Type:     &req.Type,
+		ID:   req.ID,
+		Room: &req.Room,
+		Name: &req.Name,
+		Type: &req.Type,
 	}
 	updateDB, err := s.store.UpdateDevice(&update)
 	if err != nil {
@@ -97,8 +101,116 @@ func (s *deviceService) UpdateDevice(id int32, req *domain.UpdateDeviceRequest) 
 	return updateDB, nil
 }
 
+func (s *deviceService) InsertStatusData(data *domain.DeviceMessage) error {
+	// valid := s.validateStatusData(data)
+	// if !valid {
+	// 	return fmt.Errorf("device type and device id mismatch")
+	// }
+
+	schedule := store.DeviceSchedule{}
+	if scheduleData, ok := data.Schedule["schedule"].(map[string]interface{}); ok {
+		if action, ok := scheduleData["action"].(string); ok {
+			schedule.Action = action
+		}
+		if scheduledAt, ok := scheduleData["scheduled_at"].(string); ok {
+			parsedTime, err := time.Parse(time.RFC3339, scheduledAt)
+			if err == nil {
+				schedule.ScheduledAt = parsedTime
+			}
+		}
+		if recurring, ok := scheduleData["recurring"].(string); ok {
+			schedule.Recurring = recurring
+		}
+	}
+
+	insert := store.DeviceStatus{
+		DeviceID:  data.DeviceID,
+		State:     data.State,
+		Schedule:  schedule,
+		UpdatedAt: data.Time,
+	}
+
+	err := s.store.InsertStatusData(&insert)
+	if err != nil {
+		return fmt.Errorf("failed to insert device status: %w", err)
+	}
+
+	return nil
+}
+func (s *deviceService) HandleControlMessage(data *domain.DeviceMessage) error {
+	// BỔ SUNG: THÊM HÀM ĐỂ KIỂM TRA ACTIVE ĐÃ SYNC
+
+	schedule := store.DeviceSchedule{}
+	if scheduleData, ok := data.Schedule["schedule"].(map[string]interface{}); ok {
+		if action, ok := scheduleData["action"].(string); ok {
+			schedule.Action = action
+		}
+		if scheduledAt, ok := scheduleData["scheduled_at"].(string); ok {
+			parsedTime, err := time.Parse(time.RFC3339, scheduledAt)
+			if err == nil {
+				schedule.ScheduledAt = parsedTime
+			}
+		}
+		if recurring, ok := scheduleData["recurring"].(string); ok {
+			schedule.Recurring = recurring
+		}
+	}
+
+	insert := store.DeviceStatus{
+		DeviceID:  data.DeviceID,
+		State:     data.State,
+		Schedule:  schedule,
+		UpdatedAt: data.Time,
+	}
+
+	err := s.store.InsertStatusData(&insert)
+	if err != nil {
+		return fmt.Errorf("failed to insert device status: %w", err)
+	}
+
+	return nil
+}
+
+func (s *deviceService) GetDeviceStatus(deviceID int32) (*store.DeviceStatus, error) {
+	find := store.FindDevice{ID: &deviceID}
+	status, err := s.store.GetStatus(&find)
+	if err != nil {
+		return nil, err
+	}
+	return status, nil
+}
+
+func (s *deviceService) ExecuteCommand(cmd domain.DeviceCommand) error {
+	id := cmd.GetDeviceID()
+	find := store.FindDevice{ID: &id}
+	status, err := s.store.GetStatus(&find)
+	if err != nil {
+		return err
+	}
+	if err := cmd.Execute(); err != nil {
+		return err
+	}
+	status.State = cmd.GetState()
+	status.UpdatedAt = time.Now()
+	statusNEW, err := s.store.UpdateStatus(status)
+	if err != nil {
+		return err
+	}
+	history := &store.DeviceHistory{
+		DeviceID:  cmd.GetDeviceID(),
+		Action:    cmd.GetCommandType(),
+		State:     cmd.GetState(),
+		By:        "user",
+		Timestamp: time.Now(),
+	}
+	historyNEW, err := s.store.RecordHistory(history)
+	if err != nil {
+		return err
+	}
+	return fmt.Errorf("status updated: %+v\nhistory recorded: %+v", statusNEW, historyNEW)
+}
+
 func (s *deviceService) ListDeviceHistory(id int32, req *domain.GetDeviceHistoryRequest) ([]*store.DeviceHistory, error) {
-	// mặc định là 24h
 	now := time.Now()
 	startTime := util.GetValueOrDefault(req.StartTime, now.Add(-24*time.Hour).Format(time.RFC3339))
 	endTime := util.GetValueOrDefault(req.EndTime, now.Format(time.RFC3339))
@@ -125,113 +237,19 @@ func (s *deviceService) ListDeviceHistory(id int32, req *domain.GetDeviceHistory
 	return histories, nil
 }
 
-func (s *deviceService) ListDeviceSchedule(idDevice int32) ([]*store.DeviceSchedule, error) {
-	find := store.FindDeviceSchedule{DeviceID: &idDevice}
-	schedules, err := s.store.ListDeviceSchedule(&find)
-	if err != nil {
-		return nil, err
-	}
-	return schedules, nil
+func (s *deviceService) UpdateStatus(status *store.DeviceStatus) error {
+	return nil
 }
 
-// func (s *deviceService) UpdateDevice(id int32, req *domain.UpdateDeviceRequest) error {
-// 	existingDevice, err := s.store.GetDeviceByID(id)
+func (s *deviceService) RecordHistory(history *store.DeviceHistory) error {
+	return nil
+}
+
+// func (s *deviceService) ListDeviceSchedule(idDevice int32) ([]*store.DeviceSchedule, error) {
+// 	find := store.FindDeviceSchedule{DeviceID: &idDevice}
+// 	schedules, err := s.store.ListDeviceSchedule(&find)
 // 	if err != nil {
 // 		return nil, err
 // 	}
-// 	if existingDevice == nil {
-// 		return nil, fmt.Errorf("device not found")
-// 	}
-
-// 	updateData := store.Device{
-// 		ID:       id,
-// 		Name:     *req.Name,
-// 		Location: *req.Location,
-// 		Type:     *req.Type,
-// 		Power:    *req.Power,
-// 		Level:    *req.Level,
-// 	}
-
-// }
-
-// func (s *deviceService) UpdateDevice(id int32, req *domain.UpdateDeviceRequest) (*store.Device, error) {
-
-// 	update := domain.UpdateDeviceRequest{
-// 		ID: id,
-// 	}
-
-// 	if req.Name != nil {
-// 		update.Name = req.Name
-// 	}
-// 	if req.Location != nil {
-// 		update.Location = req.Location
-// 	}
-// 	if req.Type != nil {
-// 		update.Type = req.Type
-// 	}
-// 	if req.Power != nil {
-// 		update.Power = req.Power
-// 	}
-// 	if req.Level != nil {
-
-// 		levelStr := fmt.Sprintf("%d", *req.Level)
-// 		update.Level = &levelStr
-// 	}
-
-// 	updatedDevice, err := s.store.UpdateDevice(&update)
-// 	if err != nil {
-// 		return nil, fmt.Errorf("failed to update device in store: %w", err)
-// 	}
-
-// 	return updatedDevice, nil
-// }
-
-// func (s *deviceService) ControlDevice(id int32, status string) (*store.Device, error) {
-// 	return nil, nil
-// }
-
-// func (s *deviceService) GetDeviceHistory(id int32, startTime string, endTime string) ([]*store.DeviceHistory, error) {
-// 	return nil, nil
-// }
-// func (s *deviceService) CreateDeviceSchedule(req *domain.CreateScheduleRequest) (*store.DeviceSchedule, error) {
-// 	return nil, nil
-// }
-
-// func (s *deviceService) ListDeviceSchedules(deviceID int32) ([]*store.DeviceSchedule, error) {
-// 	return nil, nil
-// }
-
-// // func (s *deviceService) GetDeviceHistory(id int32, startTime string, endTime string) ([]*store.DeviceHistory, error) {
-// // 	// find:=store
-// // 	// if startTime != "" {
-// // 	// 	start, _ := time.Parse(time.RFC3339, startTime)
-// // 	// 	find.StartTime = &start
-// // 	// }
-// // 	// if endTime != "" {
-// // 	// 	end, _ := time.Parse(time.RFC3339, endTime)
-// // 	// 	find.EndTime = &end
-// // 	// }
-// // 	// history, err := s.store.ListDeviceHistory(&find)
-// // 	// if err != nil {
-// // 	// 	return nil, err
-// // 	// }
-// // 	// return domain.ToDeviceHistoryListDTO(history), nil
-// // 	return nil, nil
-// // }
-
-// func (s *deviceService) getDeviceType(deviceID int32) (string, error) {
-// 	if val, ok := s.cache.Get(strconv.Itoa(int(deviceID))); ok {
-// 		return val.(string), nil
-// 	}
-// 	device, err := s.store.GetDevice(&store.FindDevice{ID: &deviceID})
-// 	if err != nil {
-// 		return "", err
-// 	}
-// 	s.cache.Set(strconv.Itoa(int(device.ID)), device.Type, 0)
-// 	return device.Type, nil
-// }
-
-// func (s *deviceService) validateDeviceData(data *domain.DeviceDataMessage) bool {
-// 	sensorType, _ := s.getSensorType(data.ID)
-// 	return sensorType == data.Type
+// 	return schedules, nil
 // }

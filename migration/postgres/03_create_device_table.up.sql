@@ -1,31 +1,38 @@
 CREATE TABLE IF NOT EXISTS devices (
     id SERIAL PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    type VARCHAR(100) NOT NULL,
-    location VARCHAR(255) NOT NULL,
-    attributes JSONB NOT NULL DEFAULT '{}'::JSONB, -- Trạng thái: power, mode, level...
-    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
-); 
+    serial_device VARCHAR(50) NOT NULL UNIQUE,
+    name VARCHAR(50),
+    type VARCHAR(50),
+    room VARCHAR(100)
+);
+CREATE TABLE IF NOT EXISTS device_status (
+    device_id INT PRIMARY KEY REFERENCES devices(id) ON DELETE CASCADE,
+    active BOOLEAN NOT NULL DEFAULT TRUE,
+    schedule_enable BOOLEAN NOT NULL DEFAULT FALSE,
+    state JSONB NOT NULL, -- power ON/OFF, level MIN/MEDIUM/MAX
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
 
 CREATE TABLE IF NOT EXISTS device_history (
     id SERIAL PRIMARY KEY,
-    device_id INTEGER NOT NULL,
-    action VARCHAR(50) NOT NULL,
-    attributes JSONB DEFAULT '{}'::JSONB,
-    timestamp TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (device_id) REFERENCES devices(id) ON DELETE CASCADE
+    device_id INT NOT NULL REFERENCES devices(id) ON DELETE CASCADE,
+    action TEXT NOT NULL,
+    state JSONB NOT NULL,
+    by TEXT NOT NULL, -- "user" or "scheduling:%ID"
+    timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
-CREATE TABLE IF NOT EXISTS device_schedules (
+
+CREATE TABLE IF NOT EXISTS device_schedule (
     id SERIAL PRIMARY KEY,
-    device_id INTEGER NOT NULL,
-    action VARCHAR(50) NOT NULL,
-    attributes JSONB DEFAULT '{}'::JSONB,
-    time TIME NOT NULL,
-    repeat VARCHAR(100) NOT NULL,  -- once daily weekly
-    start_date DATE DEFAULT CURRENT_DATE,
-    end_date DATE,
+    device_id INT NOT NULL REFERENCES devices(id) ON DELETE CASCADE,
+    action TEXT NOT NULL CHECK (action IN ('TURN_ON', 'TURN_OFF', 'SET_LEVEL')),
+    scheduled_at TIMESTAMP NOT NULL,
+    recurring TEXT NOT NULL CHECK (recurring IN ('DAILY', 'WEEKLY', 'ONCE')),
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (device_id) REFERENCES devices(id) ON DELETE CASCADE
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE INDEX IF NOT EXISTS  idx_device_history_device_id ON device_history(device_id);
+CREATE INDEX IF NOT EXISTS  idx_device_schedule_device_id ON device_schedule(device_id);
+CREATE INDEX IF NOT EXISTS  idx_device_status_device_id ON device_status(device_id);
