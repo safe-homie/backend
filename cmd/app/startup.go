@@ -34,9 +34,14 @@ func InitApp() (infrastructure.AppContext, infrastructure.AppInfra, infrastructu
 	} else {
 		context.Logger().Info("migrate completed")
 	}
-	eventManager.RegisterEvent(domain.SensorThresholdExceed, func(ev domain.SensorThresholdExceedEvent) {
+
+	handler := func(ev domain.SensorThresholdExceedEvent) {
 		srv.NotifyService().Notify(ev.Token, ev.Notify)
-	})
+		// This statement is used for notify the gateway
+		// Another method is gateway directly check for exceeded for response without waiting server to do the logic
+		// infra.MQTT().Publish("sensors:threshold-exceeded", ev.Notify.Data["type"])
+	}
+	eventManager.RegisterEvent(domain.SensorThresholdExceed, handler)
 	context.Logger().Info("register sensor threshold event done")
 	return context, infra, srv, nil
 }
