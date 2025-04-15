@@ -1,6 +1,8 @@
 package mqtt
 
 import (
+	"encoding/json"
+	"fmt"
 	"time"
 
 	mqtt "github.com/eclipse/paho.mqtt.golang"
@@ -16,8 +18,8 @@ func New(cfg *config.Config) MQTTClient {
 	opts := mqtt.NewClientOptions()
 	opts.AddBroker(cfg.MQTT.BrokerAddress())
 	opts.SetClientID(cfg.MQTT.ClientID)
-	opts.SetUsername(cfg.MQTT.Username)
-	opts.SetPassword(cfg.MQTT.Password)
+	// opts.SetUsername(cfg.MQTT.Username)
+	// opts.SetPassword(cfg.MQTT.Password)
 	opts.SetAutoReconnect(true)
 	opts.SetConnectRetry(true)
 	opts.SetConnectTimeout(10 * time.Second)
@@ -38,7 +40,15 @@ func (c *mqttClient) Connect() error {
 }
 
 func (c *mqttClient) Publish(topic string, payload any) error {
-	token := c.client.Publish(topic, 0, false, payload)
+	var finalPayload interface{} = payload
+	if _, ok := payload.(map[string]interface{}); ok {
+		jsonBytes, err := json.Marshal(payload)
+		if err != nil {
+			return fmt.Errorf("failed to marshal map to json: %w", err)
+		}
+		finalPayload = string(jsonBytes)
+	}
+	token := c.client.Publish(topic, 0, false, finalPayload)
 	token.Wait()
 	return token.Error()
 }

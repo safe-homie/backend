@@ -15,7 +15,7 @@ const (
 	MaxlevelDeviceLight = "5"
 	MaxlevelDeviceFan   = "3"
 
-	DefaultDeviceLocation = "Living Room"
+	DefaultDeviceLocation = "living room"
 )
 
 type DeviceCommand interface {

@@ -72,11 +72,11 @@ type UpdateDeviceRequest struct {
 	Type string `json:"type"`
 }
 type GetDeviceHistoryRequest struct {
-	StartTime string `json:"start_time"`
-	EndTime   string `json:"end_time"`
+	StartTime string `query:"start_time"`
+	EndTime   string `query:"end_time"`
 }
 type ControlDeviceRequest struct {
-	Action string                 `json:"action"`
+	Action string                 `json:"action" example:"TURN_ON" enums:"TURN_ON,TURN_OFF,SET_LEVEL"`
 	State  map[string]interface{} `json:"state"`
 }
 

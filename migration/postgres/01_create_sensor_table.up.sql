@@ -15,4 +15,4 @@ CREATE TABLE IF NOT EXISTS sensor_data (
     FOREIGN KEY (sensor_id) REFERENCES sensors (id)
 );
 
--- SELECT create_hypertable('sensor_data', 'time');
+SELECT create_hypertable('sensor_data', 'time');

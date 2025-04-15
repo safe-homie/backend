@@ -10,6 +10,7 @@ import (
 	"github.com/safe-homie/backend/internal/domain"
 	"github.com/safe-homie/backend/internal/store"
 	"github.com/safe-homie/backend/internal/util"
+	"github.com/safe-homie/backend/pkg/mqtt"
 )
 
 type DeviceRepository interface {
@@ -44,18 +45,19 @@ type DeviceService interface {
 	// ListDeviceSchedule(deviceID int32) ([]*store.DeviceSchedule, error)
 	// CreateDevice(req *domain.CreateDeviceRequest) (*store.Device, error)
 	// CreateDeviceSchedule(req *domain.CreateScheduleRequest) (*store.DeviceSchedule, error)
-
+	MQTTClient() mqtt.MQTTClient
 }
 
-func NewService(store store.Store) DeviceService {
-	srv := &deviceService{store: store, cache: cache.NewInMemoryCache()}
+func NewService(store store.Store, client mqtt.MQTTClient) DeviceService {
+	srv := &deviceService{store: store, cache: cache.NewInMemoryCache(), client: client}
 	srv.loadCacheFromDB()
 	return srv
 }
 
 type deviceService struct {
-	store store.Store
-	cache cache.Cache
+	store  store.Store
+	cache  cache.Cache
+	client mqtt.MQTTClient
 }
 
 func (s *deviceService) loadCacheFromDB() {
@@ -66,6 +68,10 @@ func (s *deviceService) loadCacheFromDB() {
 	for _, device := range devices {
 		s.cache.Set(strconv.Itoa(int(device.ID)), device.Type, 0)
 	}
+}
+
+func (s *deviceService) MQTTClient() mqtt.MQTTClient {
+	return s.client
 }
 
 func (s *deviceService) GetDevice(id int32) (*store.Device, error) {
@@ -192,7 +198,7 @@ func (s *deviceService) ExecuteCommand(cmd domain.DeviceCommand) error {
 	}
 	status.State = cmd.GetState()
 	status.UpdatedAt = time.Now()
-	statusNEW, err := s.store.UpdateStatus(status)
+	_, err = s.store.UpdateStatus(status)
 	if err != nil {
 		return err
 	}
@@ -203,11 +209,11 @@ func (s *deviceService) ExecuteCommand(cmd domain.DeviceCommand) error {
 		By:        "user",
 		Timestamp: time.Now(),
 	}
-	historyNEW, err := s.store.RecordHistory(history)
+	_, err = s.store.RecordHistory(history)
 	if err != nil {
 		return err
 	}
-	return fmt.Errorf("status updated: %+v\nhistory recorded: %+v", statusNEW, historyNEW)
+	return nil
 }
 
 func (s *deviceService) ListDeviceHistory(id int32, req *domain.GetDeviceHistoryRequest) ([]*store.DeviceHistory, error) {

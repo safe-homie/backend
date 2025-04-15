@@ -208,13 +208,13 @@ func (p *_postgres) GetDeviceStatus(find *store.FindDevice) (*store.DeviceStatus
 	}
 	stmt := `
 		SELECT
-			id,
+			device_id,
 			active,
 			schedule_enable,
 			state,
 			updated_at
 		FROM device_status
-		WHERE id = $1
+		WHERE device_id = $1
 	`
 
 	var (
@@ -251,7 +251,7 @@ func (p *_postgres) GetDeviceStatus(find *store.FindDevice) (*store.DeviceStatus
 			is_active,
 			created_at,
 			updated_at
-		FROM device_schedules
+		FROM device_schedule
 		WHERE device_id = $1 AND is_active = true
 		ORDER BY scheduled_at DESC
 		LIMIT 1
@@ -298,8 +298,8 @@ func (p *_postgres) UpdateDeviceStatus(status *store.DeviceStatus) (*store.Devic
 				schedule_enable = $2,
 				state = $3,
 				updated_at = $4
-			WHERE id = $5
-			RETURNING id
+			WHERE device_id = $5
+			RETURNING device_id
 		`
 
 	var id int32

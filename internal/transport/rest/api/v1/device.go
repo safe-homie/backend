@@ -92,6 +92,17 @@ func (a *APIV1) DeviceStatus(ctx echo.Context) *Response {
 	return NewDataResponse(http.StatusOK, domain.ToDeviceStatusDTO(status))
 }
 
+// @Summary		Control device
+// @Description	Send device control request from app
+// @Tags			devices
+// @Accept			json
+// @Produce		json
+// @Param id path int true "Device ID"
+// @Param			request	body		domain.ControlDeviceRequest	true	"control device request body ; if there is no state info: use state: {} ; level of fan 1 - 3 ; level of light 1 - 5"
+// @Success		200		{object}	SuccessResponseWrapper{data=string}
+// @Failure		400		{object}	ErrorResponseWrapper{error=string}
+// @Failure		500		{object}	ErrorResponseWrapper{error=string}
+// @Router			/devices/{id}/control [post]
 func (a *APIV1) ControlDevice(ctx echo.Context) *Response {
 
 	// status, err := a.deviceService.GetDeviceStatus(int32(id))
@@ -112,12 +123,12 @@ func (a *APIV1) ControlDevice(ctx echo.Context) *Response {
 	var cmd domain.DeviceCommand
 	switch req.Action {
 	case domain.DeviceActionTurnON:
-		cmd = store.NewTurnOnCommand(id)
+		cmd = store.NewTurnOnCommand(id, a.deviceService.MQTTClient())
 	case domain.DeviceActionTurnOFF:
-		cmd = store.NewTurnOffCommand(id)
+		cmd = store.NewTurnOffCommand(id, a.deviceService.MQTTClient())
 	case domain.DeviceActionSetLEVEL:
 		if level, ok := req.State["level"].(string); ok {
-			cmd = store.NewSetLevelCommand(id, level)
+			cmd = store.NewSetLevelCommand(id, level, a.deviceService.MQTTClient())
 		}
 	default:
 		return NewErrorResponse(http.StatusInternalServerError, "failed to action device: ")
@@ -171,14 +182,14 @@ func (a *APIV1) ControlDevice(ctx echo.Context) *Response {
 // @Summary		Get device history
 // @Description	Get historical data of a device by ID
 // @Tags			devices
-// @Accept			json
 // @Produce		json
 // @Param			id		path		int								true	"Device ID"
-// @Param			body	body		domain.GetDeviceHistoryRequest	true	"Filter for device history"
-// @Success		200		{object}	SuccessResponseWrapper{data=[]domain.DeviceHistoryResponse}
+// @Param	start_time query string false "If empty default to previous 24 hours ; Example: 2025-04-15T10:10:10Z"
+// @Param 	end_time query string false "If empty default to current time"
+// @Success		200		{object}	SuccessResponseWrapper{data=[]domain.GetDeviceHistoryResponse}
 // @Failure		400		{object}	ErrorResponseWrapper{error=string}
 // @Failure		500		{object}	ErrorResponseWrapper{error=string}
-// @Router			/devices/{id}/history [post]
+// @Router			/devices/{id}/history [get]
 func (a *APIV1) DeviceHistories(ctx echo.Context) *Response {
 	id, errResp := ParseIDParam(ctx, "id")
 	if errResp != nil {
@@ -186,9 +197,6 @@ func (a *APIV1) DeviceHistories(ctx echo.Context) *Response {
 	}
 	var req domain.GetDeviceHistoryRequest
 	if err := ctx.Bind(&req); err != nil {
-		return ErrorInvalidRequestBody
-	}
-	if err := a.context.Validator().Validate(req); err != nil {
 		return ErrorInvalidRequestBody
 	}
 	histories, err := a.deviceService.ListDeviceHistory(int32(id), &req)

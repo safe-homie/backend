@@ -24,12 +24,12 @@ type (
 		UpdatedAt      time.Time
 	}
 	DeviceHistory struct {
-		ID        int32
-		DeviceID  int32
-		Action    string
-		State     map[string]interface{} //power ON/OF ; level MIN/MEDIUM/MAX
-		By        string                 // user or scheduling:%ID
-		Timestamp time.Time
+		ID        int32                  `json:"id"`
+		DeviceID  int32                  `json:"device_id"`
+		Action    string                 `json:"action"`
+		State     map[string]interface{} `json:"state"` //power ON/OF ; level MIN/MEDIUM/MAX
+		By        string                 `json:"by"`    // user or scheduling:%ID
+		Timestamp time.Time              `json:"timestamp"`
 	}
 	DeviceSchedule struct {
 		ID          int32
@@ -148,12 +148,13 @@ type TurnOnCommand struct {
 	BaseCommand
 }
 
-func NewTurnOnCommand(deviceID int32) *TurnOnCommand {
+func NewTurnOnCommand(deviceID int32, client mqtt.MQTTClient) *TurnOnCommand {
 	return &TurnOnCommand{
 		BaseCommand: BaseCommand{
 			DeviceID:    deviceID,
 			CommandType: "TURN_ON",
 			State:       map[string]interface{}{"power": "ON"},
+			MQTT:        client,
 		},
 	}
 }
@@ -171,12 +172,13 @@ type TurnOffCommand struct {
 	BaseCommand
 }
 
-func NewTurnOffCommand(deviceID int32) *TurnOffCommand {
+func NewTurnOffCommand(deviceID int32, client mqtt.MQTTClient) *TurnOffCommand {
 	return &TurnOffCommand{
 		BaseCommand: BaseCommand{
 			DeviceID:    deviceID,
 			CommandType: "TURN_OFF",
 			State:       map[string]interface{}{"power": "OFF"},
+			MQTT:        client,
 		},
 	}
 }
@@ -195,12 +197,13 @@ type SetLevelCommand struct {
 	Level string
 }
 
-func NewSetLevelCommand(deviceID int32, level string) *SetLevelCommand {
+func NewSetLevelCommand(deviceID int32, level string, client mqtt.MQTTClient) *SetLevelCommand {
 	return &SetLevelCommand{
 		BaseCommand: BaseCommand{
 			DeviceID:    deviceID,
 			CommandType: "SET_LEVEL",
 			State:       map[string]interface{}{"level": level},
+			MQTT:        client,
 		},
 		Level: level,
 	}

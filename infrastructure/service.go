@@ -4,6 +4,7 @@ import (
 	"github.com/safe-homie/backend/internal/service/device"
 	"github.com/safe-homie/backend/internal/service/sensor"
 	"github.com/safe-homie/backend/internal/store"
+	"github.com/safe-homie/backend/pkg/mqtt"
 )
 
 type AppService interface {
@@ -16,10 +17,10 @@ type appService struct {
 	deviceService device.DeviceService
 }
 
-func NewAppService(store store.Store) AppService {
+func NewAppService(store store.Store, client mqtt.MQTTClient) AppService {
 	return &appService{
 		sensorService: sensor.NewService(store),
-		deviceService: device.NewService(store),
+		deviceService: device.NewService(store, client),
 	}
 }
 
