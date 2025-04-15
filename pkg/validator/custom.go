@@ -9,3 +9,18 @@ func ValidateSensorType(fl validator.FieldLevel) bool {
 	value := fl.Field().String()
 	return domain.IsValidSensorType(value)
 }
+
+func ValidateDeviceType(fl validator.FieldLevel) bool {
+	value := fl.Field().String()
+	return domain.IsValidDeviceType(value)
+}
+
+func ValidateDeviceAction(fl validator.FieldLevel) bool {
+	value := fl.Field().String()
+	return domain.IsValidDeviceAction(value)
+}
+
+func ValidateScheduleRepeat(fl validator.FieldLevel) bool {
+	value := fl.Field().String()
+	return domain.IsValidScheduleRepeat(value)
+}

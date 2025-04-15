@@ -138,8 +138,8 @@ func (s *sensorService) handleIfExceeded(data *store.SensorData) {
 		token, _ := s.store.GetToken(&store.FindToken{DeviceID: domain.DefaultDeviceID})
 		ev := domain.SensorThresholdExceedEvent{
 			Notify: domain.Notification{
-				Title: "Cảnh báo vượt ngưỡng",
-				Body: fmt.Sprintf("Cảm biến %s tại %s đo được giá trị %.2f, vượt ngưỡng an toàn %.2f",
+				Title: "⚠️ Sensor Alert",
+				Body: fmt.Sprintf("Sensor %s at %s measured %.2f, exceeding safety limit of %.2f.",
 					sensorDB.Name, sensorDB.Location, data.Value, sensorDB.ThresholdDanger),
 				Data: map[string]string{
 					"location":  sensorDB.Location,

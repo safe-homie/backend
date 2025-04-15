@@ -7,6 +7,7 @@ import (
 	_ "github.com/safe-homie/backend/docs"
 	"github.com/safe-homie/backend/infrastructure"
 	"github.com/safe-homie/backend/internal/service/demo"
+	"github.com/safe-homie/backend/internal/service/device"
 	"github.com/safe-homie/backend/internal/service/notify"
 	"github.com/safe-homie/backend/internal/service/sensor"
 	echoSwagger "github.com/swaggo/echo-swagger"
@@ -16,6 +17,7 @@ type APIV1 struct {
 	context       infrastructure.AppContext
 	demoService   *demo.Demo
 	sensorService sensor.SensorService
+	deviceService device.DeviceService
 	notifyService notify.NotifyService
 }
 
@@ -24,6 +26,7 @@ func New(context infrastructure.AppContext, infra infrastructure.AppInfra, srv i
 		context:       context,
 		demoService:   new(demo.Demo),
 		sensorService: srv.SensorService(),
+		deviceService: srv.DeviceService(),
 		notifyService: srv.NotifyService(),
 	}
 }
@@ -48,6 +51,27 @@ func (a *APIV1) RegisterHandlers(e *echo.Echo) {
 		sensor.GET("/data/latest", Wrap(a.ListLatestSensorDataByLocation))
 	}
 
+	device := v1.Group("/devices")
+	{
+		device.GET("/:id", Wrap(a.GetDevice))
+		device.GET("", Wrap(a.ListDevices))
+		device.PUT("/:id", Wrap(a.UpdateDevice))
+
+		device.GET("/:id/status", Wrap(a.DeviceStatus))
+		device.POST("/:id/control", Wrap(a.ControlDevice))
+
+		device.GET("/:id/history", Wrap(a.DeviceHistories))
+
+		// // device.GET("/:id/schedule", Wrap(a.DeviceSchedules))
+		// // device.POST("/:id/schedule/insert", Wrap(a.CreaeteScheduleDevice))
+		// // device.PUT("/:id/schedule/:schedule_id", Wrap(a.UpdateDeviceSchedule))
+		// // device.DELETE("/:id/schedule/:schedule_id", Wrap(a.DeleteScheduleDevice))
+
+		// // Update later
+		// device.POST("room/auto-mode", Wrap(a.AutoModeSchedule))
+		// device.POST("room/apply-preset", Wrap(a.PresetModeSchedule))
+
+	}
 }
 
 func (a *APIV1) Demo(ctx echo.Context) *Response {

@@ -3,6 +3,7 @@ package mqtt
 import (
 	"fmt"
 
+	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"github.com/safe-homie/backend/infrastructure"
 	"github.com/safe-homie/backend/internal/transport/mqtt/handler"
 	_mqtt "github.com/safe-homie/backend/pkg/mqtt"
@@ -18,7 +19,7 @@ func NewServer(context infrastructure.AppContext, infra infrastructure.AppInfra,
 	return &Server{
 		context: context,
 		client:  infra.MQTT(),
-		handler: handler.NewMQTTHandler(srv.SensorService()),
+		handler: handler.NewMQTTHandler(srv.SensorService(), srv.DeviceService()),
 	}
 }
 
@@ -35,10 +36,28 @@ func (s *Server) Start() error {
 }
 
 func (s *Server) registerHandlers() (err error) {
-	s.context.Logger().Info("subscribe sensors topic")
-	err = s.client.Subscribe("sensors/+", s.handler.HandleSensorMessage)
-	if err != nil {
-		return
+	// s.context.Logger().Info("subscribe sensors topic")
+	// err = s.client.Subscribe("sensors/+", s.handler.HandleSensorMessage)
+	// if err != nil {
+	// 	return
+	// }
+	// s.context.Logger().Info("subscribe devices topic")
+	// if err := s.client.Subscribe("devices/+", s.handler.HandleDeviceMessage); err != nil {
+	// 	return err
+	// }
+	// return nil
+	topics := map[string]mqtt.MessageHandler{
+		"sensors/+":         s.handler.HandleSensorMessage,
+		"devices/+":         s.handler.HandleDeviceMessage,
+		"devices/+/status":  s.handler.HandleDeviceMessage,
+		"devices/+/control": s.handler.HandleDeviceMessage,
+	}
+
+	for topic, handler := range topics {
+		s.context.Logger().Info(fmt.Sprintf("Subscribing to topic: %s", topic))
+		if err := s.client.Subscribe(topic, handler); err != nil {
+			return err
+		}
 	}
 	return nil
 }

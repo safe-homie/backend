@@ -60,6 +60,9 @@ func (p *_postgres) Migrate() error {
 	if err != nil {
 		return fmt.Errorf("fail to create migration instance: %w", err)
 	}
+	// if err := m.Force(0); err != nil {
+	// 	return fmt.Errorf("failed to reset migration: %w", err)
+	// }
 	if err := m.Up(); err != nil && !errors.Is(err, migrate.ErrNoChange) {
 		return fmt.Errorf("failed to run migrations: %w", err)
 	}

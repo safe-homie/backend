@@ -1,5 +1,18 @@
 basePath: /api/v1
 definitions:
+  domain.ControlDeviceRequest:
+    properties:
+      action:
+        enum:
+        - TURN_ON
+        - TURN_OFF
+        - SET_LEVEL
+        example: TURN_ON
+        type: string
+      state:
+        additionalProperties: true
+        type: object
+    type: object
   domain.CreateSensorRequest:
     properties:
       location:
@@ -18,6 +31,28 @@ definitions:
     - location
     - name
     - type
+    type: object
+  domain.GetDeviceHistoryResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/store.DeviceHistory'
+        type: array
+      time_range:
+        $ref: '#/definitions/domain.TimeRange'
+    type: object
+  domain.GetDeviceResponse:
+    properties:
+      id:
+        type: integer
+      location:
+        type: string
+      name:
+        type: string
+      serial_device:
+        type: string
+      type:
+        type: string
     type: object
   domain.GetSensorDataWithProfileResponse:
     properties:
@@ -58,6 +93,53 @@ definitions:
       token:
         type: string
     type: object
+  domain.TimeRange:
+    properties:
+      end_time:
+        type: string
+      start_time:
+        type: string
+    type: object
+  domain.UpdateDeviceRequest:
+    properties:
+      id:
+        type: integer
+      name:
+        type: string
+      room:
+        type: string
+      type:
+        type: string
+    type: object
+  domain.UpdateDeviceResponse:
+    properties:
+      id:
+        type: integer
+      name:
+        type: string
+      room:
+        type: string
+      type:
+        type: string
+    type: object
+  store.DeviceHistory:
+    properties:
+      action:
+        type: string
+      by:
+        description: user or scheduling:%ID
+        type: string
+      device_id:
+        type: integer
+      id:
+        type: integer
+      state:
+        additionalProperties: true
+        description: power ON/OF ; level MIN/MEDIUM/MAX
+        type: object
+      timestamp:
+        type: string
+    type: object
   v1.ErrorResponseWrapper:
     properties:
       code:
@@ -89,6 +171,234 @@ info:
   title: SafeHomie API
   version: "1.0"
 paths:
+  /devices:
+    get:
+      description: Get device profile lists by location
+      parameters:
+      - description: list devices by room
+        in: query
+        name: room
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/v1.SuccessResponseWrapper'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/domain.GetDeviceResponse'
+                  type: array
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            allOf:
+            - $ref: '#/definitions/v1.ErrorResponseWrapper'
+            - properties:
+                error:
+                  type: string
+              type: object
+      summary: Get device profiles list
+      tags:
+      - devices
+  /devices/{id}:
+    get:
+      description: Get device profile by ID
+      parameters:
+      - description: Device ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/v1.SuccessResponseWrapper'
+            - properties:
+                data:
+                  $ref: '#/definitions/domain.GetDeviceResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            allOf:
+            - $ref: '#/definitions/v1.ErrorResponseWrapper'
+            - properties:
+                error:
+                  type: string
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            allOf:
+            - $ref: '#/definitions/v1.ErrorResponseWrapper'
+            - properties:
+                error:
+                  type: string
+              type: object
+      summary: Get a device profile
+      tags:
+      - devices
+    put:
+      consumes:
+      - application/json
+      description: Update device information by ID
+      parameters:
+      - description: Device ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Updated device info
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/domain.UpdateDeviceRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/v1.SuccessResponseWrapper'
+            - properties:
+                data:
+                  $ref: '#/definitions/domain.UpdateDeviceResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            allOf:
+            - $ref: '#/definitions/v1.ErrorResponseWrapper'
+            - properties:
+                error:
+                  type: string
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            allOf:
+            - $ref: '#/definitions/v1.ErrorResponseWrapper'
+            - properties:
+                error:
+                  type: string
+              type: object
+      summary: Update a device
+      tags:
+      - devices
+  /devices/{id}/control:
+    post:
+      consumes:
+      - application/json
+      description: Send device control request from app
+      parameters:
+      - description: Device ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 'control device request body ; if there is no state info: use
+          state: {} ; level of fan 1 - 3 ; level of light 1 - 5'
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/domain.ControlDeviceRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/v1.SuccessResponseWrapper'
+            - properties:
+                data:
+                  type: string
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            allOf:
+            - $ref: '#/definitions/v1.ErrorResponseWrapper'
+            - properties:
+                error:
+                  type: string
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            allOf:
+            - $ref: '#/definitions/v1.ErrorResponseWrapper'
+            - properties:
+                error:
+                  type: string
+              type: object
+      summary: Control device
+      tags:
+      - devices
+  /devices/{id}/history:
+    get:
+      description: Get historical data of a device by ID
+      parameters:
+      - description: Device ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 'If empty default to previous 24 hours ; Example: 2025-04-15T10:10:10Z'
+        in: query
+        name: start_time
+        type: string
+      - description: If empty default to current time
+        in: query
+        name: end_time
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/v1.SuccessResponseWrapper'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/domain.GetDeviceHistoryResponse'
+                  type: array
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            allOf:
+            - $ref: '#/definitions/v1.ErrorResponseWrapper'
+            - properties:
+                error:
+                  type: string
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            allOf:
+            - $ref: '#/definitions/v1.ErrorResponseWrapper'
+            - properties:
+                error:
+                  type: string
+              type: object
+      summary: Get device history
+      tags:
+      - devices
   /notify/token:
     post:
       consumes:

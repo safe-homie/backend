@@ -13,6 +13,9 @@ type cValidator struct {
 func New() Validator {
 	v := validator.New(validator.WithRequiredStructEnabled())
 	v.RegisterValidation("sensor_type", ValidateSensorType)
+	v.RegisterValidation("device_type", ValidateDeviceType)
+	v.RegisterValidation("device_action", ValidateDeviceAction)
+	v.RegisterValidation("schedule_repeat", ValidateScheduleRepeat)
 
 	return &cValidator{validator: v}
 }

@@ -16,6 +16,15 @@ type Store interface {
 	GetLatestSensorData(find *FindSensorData) (*SensorData, error)
 	ListLatestSensorDataByLocation(find *FindSensorData) ([]*SensorDataWithProfile, error)
 
+	GetDevice(find *FindDevice) (*Device, error)
+	ListDevices(find *FindDevice) ([]*Device, error)
+	UpdateDevice(edit *UpdateDevice) (*UpdateDevice, error)
+	ListDeviceHistory(find *FindDeviceHistory) ([]*DeviceHistory, error)
+	InsertStatusData(insert *DeviceStatus) error
+	GetStatus(find *FindDevice) (*DeviceStatus, error)
+	UpdateStatus(status *DeviceStatus) (*DeviceStatus, error)
+	RecordHistory(history *DeviceHistory) (*DeviceHistory, error)
+
 	SaveToken(save *Token) (*Token, error)
 	GetToken(find *FindToken) (*Token, error)
 }

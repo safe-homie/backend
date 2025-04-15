@@ -26,7 +26,7 @@ func InitApp() (infrastructure.AppContext, infrastructure.AppInfra, infrastructu
 
 	context := infrastructure.NewAppContext(cfg, logger, validator)
 	infra := infrastructure.NewAppInfra(store, mqttClient, eventManager)
-	srv := infrastructure.NewAppService(store, eventManager)
+	srv := infrastructure.NewAppService(store, eventManager, mqttClient)
 	if err := store.Migrate(); err != nil {
 		// TODO: Needs to refactor this + Add graceful shutdown
 		Close(infra)
